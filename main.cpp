@@ -26,6 +26,7 @@ void UpdateCameraCenterInsideMap(Camera2D *camera, Player *player, EnvItem *envI
 void UpdateCameraCenterSmoothFollow(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height);
 void UpdateCameraEvenOutOnLanding(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height);
 void UpdateCameraPlayerBoundsPush(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height);
+bool isTextureValid(const Texture2D *texture);
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -36,12 +37,26 @@ int main(void)
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
     const int screenHeight = 450;
-
+    
+    const int characterSpeed = 5;
+    
     InitWindow(screenWidth, screenHeight, "raylib [core] example - 2d camera");
 
-    Image image = LoadImage("background.png");     // Loaded in CPU memory (RAM)
-    Texture2D texture = LoadTextureFromImage(image);          // Image converted to texture, GPU memory (VRAM)
-    UnloadImage(image);
+    Image image = LoadImage("sky.png");   
+    
+    const char *filename = "assets/character2.png";
+	Texture2D character = LoadTexture(filename);
+    
+    if(!isTextureValid(&character)) {
+		
+		while (!WindowShouldClose()) {
+			BeginDrawing();
+				ClearBackground(RAYWHITE);
+				DrawText(TextFormat("ERROR: Couldn't load %s.", filename), 20, 20, 20, BLACK);
+			EndDrawing();
+		}
+		return 10;
+	}
 
     Player player = { 0 };
     player.position = (Vector2){ 400, 280 };
@@ -62,7 +77,16 @@ int main(void)
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
-
+    unsigned numFrames = 6;
+	int frameWidth = character.width / numFrames;
+	Rectangle frameRec = { 0.0f, 0.0f, (float)frameWidth, (float)character.height };
+	Vector2 characterPosition = {screenWidth / 2.0f, screenHeight / 2.0f};
+    Vector2 characterVelocity = {0.0f,0.0f};
+	
+	unsigned frameDelay = 5;
+	unsigned frameDelayCounter = 0;
+	unsigned frameIndex = 0;
+    
     SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
 
@@ -85,6 +109,35 @@ int main(void)
             camera.zoom = 1.0f;
             player.position = (Vector2){ 400, 280 };
         }
+        //--------------- animation: walk - Marina
+        if (IsKeyDown(KEY_RIGHT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT)) {
+			characterVelocity.x = characterSpeed;
+			if(frameRec.width < 0) {
+				frameRec.width = -frameRec.width;
+			}
+        } else if (IsKeyDown(KEY_LEFT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT)) {
+			characterVelocity.x = -characterSpeed;
+			if(frameRec.width > 0) {
+				frameRec.width = -frameRec.width;
+			}
+		} else {
+			characterVelocity.x = 0;
+		}
+		bool characterMoving = characterVelocity.x != 0.0f || characterVelocity.y != 0.0f;
+        
+        characterPosition = Vector2Add(characterPosition, characterVelocity);
+		
+		++frameDelayCounter;
+		if(frameDelayCounter > frameDelay) {
+			frameDelayCounter = 0;
+			
+			if(characterMoving) {
+				++frameIndex;
+				frameIndex %= numFrames;
+				frameRec.x = (float) frameWidth * frameIndex;
+			}
+		}
+        
         //cameraUpdaters[cameraOption](&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
         //----------------------------------------------------------------------------------
 
@@ -94,14 +147,14 @@ int main(void)
 
             ClearBackground(LIGHTGRAY);
             
-            DrawTexture(texture, screenWidth/2 - texture.width/2, screenHeight/2 - texture.height/2, WHITE);
+            //DrawTexture(texture, screenWidth/2 - texture.width/2, screenHeight/2 - texture.height/2, WHITE);
 
             BeginMode2D(camera);
 
                 for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
 
                 Rectangle playerRect = { player.position.x - 20, player.position.y - 40, 40, 40 };
-                DrawRectangleRec(playerRect, RED);
+                DrawTextureRec(character, frameRec, characterPosition, WHITE);
 
             EndMode2D();
 
@@ -120,6 +173,10 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     return 0;
+}
+
+bool isTextureValid(const Texture2D *texture) {
+	return texture->id > 0;
 }
 
 void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float delta)
