@@ -44,7 +44,7 @@ int main(void)
 
     Image image = LoadImage("sky.png");   
     
-    const char *filename = "assets/character2.png";
+    const char *filename = "assets/character1Menor.png";
 	Texture2D character = LoadTexture(filename);
     
     if(!isTextureValid(&character)) {
@@ -77,13 +77,13 @@ int main(void)
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
-    unsigned numFrames = 6;
+    unsigned numFrames = 5; //quantidade de sprites na imagem
 	int frameWidth = character.width / numFrames;
-	Rectangle frameRec = { 0.0f, 0.0f, (float)frameWidth, (float)character.height };
-	Vector2 characterPosition = {screenWidth / 2.0f, screenHeight / 2.0f};
+	Rectangle frameRec = { 0.2f, 0.2f, (float)frameWidth, (float)character.height };
+	Vector2 characterPosition = {screenWidth / 1.5f, screenHeight / 1.5f};
     Vector2 characterVelocity = {0.0f,0.0f};
 	
-	unsigned frameDelay = 5;
+	unsigned frameDelay = 4;
 	unsigned frameDelayCounter = 0;
 	unsigned frameIndex = 0;
     
