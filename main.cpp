@@ -42,15 +42,20 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "raylib [core] example - 2d camera");
 
-    const char *filename = "assets/character1Menor.png";
-	Texture2D playerTexture = LoadTexture(filename);
+    const char *andando = "assets/character1Menor.png";
+	Texture2D playerTextureAndando = LoadTexture(andando);
 
-    if(!isTextureValid(&playerTexture)) {
+    const char *parado = "assets/parado.png";
+	Texture2D playerTextureParado = LoadTexture(parado);
+    
+
+    if(!isTextureValid(&playerTextureAndando) || !isTextureValid(&playerTextureParado)) {
 		
 		while (!WindowShouldClose()) {
 			BeginDrawing();
 				ClearBackground(RAYWHITE);
-				DrawText(TextFormat("ERROR: Couldn't load %s.", filename), 20, 20, 20, BLACK);
+				DrawText(TextFormat("ERROR: Couldn't load %s.", andando), 20, 20, 20, BLACK);
+                DrawText(TextFormat("ERROR: Couldn't load %s.", parado), 20, 20, 20, BLACK);
 			EndDrawing();
 		}
 		return 10;
@@ -80,15 +85,23 @@ int main(void)
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
-    unsigned numFrames = 5; //quantidade de sprites na imagem
-	int frameWidth = playerTexture.width / numFrames;
-	Rectangle frameRec = { 0.2f, 0.2f, (float)frameWidth, (float)playerTexture.height };
-    Vector2 characterPosition = {screenWidth / 1.5f, screenHeight / 1.5f};
-    Vector2 characterVelocity = {0.0f,0.0f};
+    // ----------------Config dos frames andando -----------------------------------------
 
-    unsigned frameDelay = 6;
+    	unsigned numFramesAndando = 4; //quantidade de sprites na imagem
+	int frameWidthAndando = playerTextureAndando.width / numFramesAndando;
+	Rectangle frameRecAndando = { 0.2f, 0.2f, (float)frameWidthAndando/2, (float)playerTextureAndando.height };
+    	Vector2 characterPosition = {screenWidth / 1.5f, screenHeight / 1.5f};
+    	Vector2 characterVelocity = {0.0f,0.0f};
+
+    	unsigned frameDelay = 6;
 	unsigned frameDelayCounter = 0;
 	unsigned frameIndex = 0;
+
+// -----------------------config dos frames parado---------------------------------------
+
+    	unsigned numFramesParado = 10; //quantidade de sprites na imagem
+	int frameWidthParado = playerTextureParado.width / numFramesParado;
+	Rectangle frameRecParado = { 0.2f, 0.2f, (float)frameWidthParado, (float)playerTextureParado.height };
 
     SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
@@ -117,13 +130,13 @@ int main(void)
 
         if (IsKeyDown(KEY_RIGHT)) {
 			characterVelocity.x = characterSpeed;
-			if(frameRec.width < 0) {
-				frameRec.width = -frameRec.width;
+			if(frameRecAndando.width < 0) {
+				frameRecAndando.width = -frameRecAndando.width;
 			}
         } else if (IsKeyDown(KEY_LEFT)) {
 			characterVelocity.x = -characterSpeed;
-			if(frameRec.width > 0) {
-				frameRec.width = -frameRec.width;
+			if(frameRecAndando.width > 0) {
+				frameRecAndando.width = -frameRecAndando.width;
 			}
 		} else {
 			characterVelocity.x = 0;
@@ -138,9 +151,13 @@ int main(void)
 			
 			if(characterMoving) {
 				++frameIndex;
-				frameIndex %= numFrames;
-				frameRec.x = (float) frameWidth * frameIndex;
-			}
+				frameIndex %= numFramesAndando;
+				frameRecAndando.x = (float) frameWidthAndando * frameIndex;
+			} else {
+                ++frameIndex;
+				frameIndex %= numFramesParado;
+				frameRecParado.x = (float) frameWidthParado * frameIndex;
+            }
 		}
 
         //cameraUpdaters[cameraOption](&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
@@ -159,14 +176,13 @@ int main(void)
                 for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
                 
                 Vector2 playerPos = { player.position.x - 20, player.position.y - 40 };
-                DrawTextureRec(playerTexture, frameRec, playerPos, WHITE);
-                
-                //DrawTexture(playerTexture, playerPos.x, playerPos.y, WHITE);
-                //Rectangle sourceRec = { 0.0f, 0.0f, (float)texture.width, (float)texture.height }; // define o retângulo de origem da imagem (começa no canto superior esquerdo e tem a mesma largura e altura da imagem)
-                //Rectangle destRec = { 100.0f, 100.0f, (float)texture.width, (float)texture.height }; // define o retângulo de destino da imagem (começa na posição (100, 100) e tem a mesma largura e altura da imagem)
-                //DrawTextureRec(texture, sourceRec, destRec, WHITE); // desenha a imagem na tela na posição (100, 100) na cor branca
-                //Rectangle playerRect = { player.position.x - 20, player.position.y - 40, 40, 40 };
-                //DrawRectangleRec(playerRect, RED);
+	    	
+	    	if(IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT)) {
+                    DrawTextureRec(playerTextureAndando, frameRecAndando, playerPos, WHITE);
+                } else {
+                    DrawTextureRec(playerTextureParado, frameRecParado, playerPos, WHITE);
+                }
+              
 
             EndMode2D();
 
