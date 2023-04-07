@@ -37,17 +37,15 @@ int main(void)
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
     const int screenHeight = 450;
-    
-    const int characterSpeed = 5;
-    
+
+    const int characterSpeed = 10;
+
     InitWindow(screenWidth, screenHeight, "raylib [core] example - 2d camera");
 
-    Image image = LoadImage("sky.png");   
-    
     const char *filename = "assets/character1Menor.png";
-	Texture2D character = LoadTexture(filename);
-    
-    if(!isTextureValid(&character)) {
+	Texture2D playerTexture = LoadTexture(filename);
+
+    if(!isTextureValid(&playerTexture)) {
 		
 		while (!WindowShouldClose()) {
 			BeginDrawing();
@@ -57,6 +55,11 @@ int main(void)
 		}
 		return 10;
 	}
+    
+    //Texture2D  playerTexture = LoadTexture("imagem.png"); // carrega a imagem
+    Image image = LoadImage("assets/background.png");     // Loaded in CPU memory (RAM)
+    Texture2D texture = LoadTextureFromImage(image);          // Image converted to texture, GPU memory (VRAM)
+    UnloadImage(image);
 
     Player player = { 0 };
     player.position = (Vector2){ 400, 280 };
@@ -78,15 +81,15 @@ int main(void)
     camera.zoom = 1.0f;
 
     unsigned numFrames = 5; //quantidade de sprites na imagem
-	int frameWidth = character.width / numFrames;
-	Rectangle frameRec = { 0.2f, 0.2f, (float)frameWidth, (float)character.height };
-	Vector2 characterPosition = {screenWidth / 1.5f, screenHeight / 1.5f};
+	int frameWidth = playerTexture.width / numFrames;
+	Rectangle frameRec = { 0.2f, 0.2f, (float)frameWidth, (float)playerTexture.height };
+    Vector2 characterPosition = {screenWidth / 1.5f, screenHeight / 1.5f};
     Vector2 characterVelocity = {0.0f,0.0f};
-	
-	unsigned frameDelay = 4;
+
+    unsigned frameDelay = 6;
 	unsigned frameDelayCounter = 0;
 	unsigned frameIndex = 0;
-    
+
     SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
 
@@ -109,13 +112,15 @@ int main(void)
             camera.zoom = 1.0f;
             player.position = (Vector2){ 400, 280 };
         }
-        //--------------- animation: walk - Marina
-        if (IsKeyDown(KEY_RIGHT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT)) {
+
+        //------atualização de frames----------------------------------------
+
+        if (IsKeyDown(KEY_RIGHT)) {
 			characterVelocity.x = characterSpeed;
 			if(frameRec.width < 0) {
 				frameRec.width = -frameRec.width;
 			}
-        } else if (IsKeyDown(KEY_LEFT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT)) {
+        } else if (IsKeyDown(KEY_LEFT)) {
 			characterVelocity.x = -characterSpeed;
 			if(frameRec.width > 0) {
 				frameRec.width = -frameRec.width;
@@ -137,7 +142,7 @@ int main(void)
 				frameRec.x = (float) frameWidth * frameIndex;
 			}
 		}
-        
+
         //cameraUpdaters[cameraOption](&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
         //----------------------------------------------------------------------------------
 
@@ -147,14 +152,21 @@ int main(void)
 
             ClearBackground(LIGHTGRAY);
             
-            //DrawTexture(texture, screenWidth/2 - texture.width/2, screenHeight/2 - texture.height/2, WHITE);
+            DrawTexture(texture, screenWidth/2 - texture.width/2, screenHeight/2 - texture.height/2, WHITE);
 
             BeginMode2D(camera);
 
                 for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
-
-                Rectangle playerRect = { player.position.x - 20, player.position.y - 40, 40, 40 };
-                DrawTextureRec(character, frameRec, characterPosition, WHITE);
+                
+                Vector2 playerPos = { player.position.x - 20, player.position.y - 40 };
+                DrawTextureRec(playerTexture, frameRec, playerPos, WHITE);
+                
+                //DrawTexture(playerTexture, playerPos.x, playerPos.y, WHITE);
+                //Rectangle sourceRec = { 0.0f, 0.0f, (float)texture.width, (float)texture.height }; // define o retângulo de origem da imagem (começa no canto superior esquerdo e tem a mesma largura e altura da imagem)
+                //Rectangle destRec = { 100.0f, 100.0f, (float)texture.width, (float)texture.height }; // define o retângulo de destino da imagem (começa na posição (100, 100) e tem a mesma largura e altura da imagem)
+                //DrawTextureRec(texture, sourceRec, destRec, WHITE); // desenha a imagem na tela na posição (100, 100) na cor branca
+                //Rectangle playerRect = { player.position.x - 20, player.position.y - 40, 40, 40 };
+                //DrawRectangleRec(playerRect, RED);
 
             EndMode2D();
 
