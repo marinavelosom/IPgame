@@ -33,6 +33,11 @@ bool isTextureValid(const Texture2D *texture);
 //------------------------------------------------------------------------------------
 int main(void)
 {
+    bool Start = false;
+    char escolha;
+    bool grounded = true;
+    //bool Pause = false;
+
     // Initialization
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
@@ -42,27 +47,42 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "raylib [core] example - 2d camera");
 
-    const char *andando = "assets/character1Menor.png";
-	Texture2D playerTextureAndando = LoadTexture(andando);
+    const char *andando1 = "assets/character1andando.png";
+	Texture2D playerTexture1Andando = LoadTexture(andando1);
 
-    const char *parado = "assets/parado.png";
-	Texture2D playerTextureParado = LoadTexture(parado);
+    const char *parado1 = "assets/character1parado.png";
+	Texture2D playerTexture1Parado = LoadTexture(parado1);
+
+    const char *andando2 = "assets/character2andando.png";
+	Texture2D playerTexture2Andando = LoadTexture(andando2);
+
+    const char *parado2 = "assets/character2parado.png";
+	Texture2D playerTexture2Parado = LoadTexture(parado2);
+
+    const char *jump = "assets/jump.png";
+	Texture2D playerTexture1Jump = LoadTexture(jump);
+
+    const char *fall = "assets/Fall.png";
+	Texture2D playerTexture1Fall = LoadTexture(fall);
+
+
     
 
-    if(!isTextureValid(&playerTextureAndando) || !isTextureValid(&playerTextureParado)) {
+    if(!isTextureValid(&playerTexture1Andando) || !isTextureValid(&playerTexture1Parado) || !isTextureValid(&playerTexture2Andando) || !isTextureValid(&playerTexture2Parado)) {
 		
 		while (!WindowShouldClose()) {
 			BeginDrawing();
 				ClearBackground(RAYWHITE);
-				DrawText(TextFormat("ERROR: Couldn't load %s.", andando), 20, 20, 20, BLACK);
-                DrawText(TextFormat("ERROR: Couldn't load %s.", parado), 20, 20, 20, BLACK);
+				DrawText(TextFormat("ERROR: Couldn't load %s.", andando1), 20, 0, 20, BLACK);
+                DrawText(TextFormat("ERROR: Couldn't load %s.", parado1), 20, 50, 20, BLACK);
+                DrawText(TextFormat("ERROR: Couldn't load %s.", andando2), 20, 100, 20, BLACK);
+                DrawText(TextFormat("ERROR: Couldn't load %s.", parado2), 20, 150, 20, BLACK);
 			EndDrawing();
 		}
 		return 10;
 	}
     
-    //Texture2D  playerTexture = LoadTexture("imagem.png"); // carrega a imagem
-    Image image = LoadImage("assets/background.png");     // Loaded in CPU memory (RAM)
+    Image image = LoadImage("assets/sky.png");     // Loaded in CPU memory (RAM)
     Texture2D texture = LoadTextureFromImage(image);          // Image converted to texture, GPU memory (VRAM)
     UnloadImage(image);
 
@@ -87,21 +107,42 @@ int main(void)
 
     // ----------------Config dos frames andando -----------------------------------------
 
-    	unsigned numFramesAndando = 4; //quantidade de sprites na imagem
-	int frameWidthAndando = playerTextureAndando.width / numFramesAndando;
-	Rectangle frameRecAndando = { 0.2f, 0.2f, (float)frameWidthAndando/2, (float)playerTextureAndando.height };
-    	Vector2 characterPosition = {screenWidth / 1.5f, screenHeight / 1.5f};
-    	Vector2 characterVelocity = {0.0f,0.0f};
-
-    	unsigned frameDelay = 6;
+    unsigned numFramesAndando = 4; //quantidade de sprites na imagem
+	int frameWidthAndando = playerTexture1Andando.width / numFramesAndando;
+	Rectangle frameRecAndando = { 0.2f, 0.2f, (float)frameWidthAndando/2, (float)playerTexture1Andando.height };
+    Vector2 characterPosition = {screenWidth / 1.5f, screenHeight / 1.5f};
+    Vector2 characterVelocity = {0.0f,0.0f};
+    
+    unsigned numFramesAndando2 = 8; //quantidade de sprites na imagem
+	int frameWidthAndando2 = playerTexture2Andando.width / numFramesAndando2;
+	Rectangle frameRecAndando2 = { 0.2f, 0.2f, (float)frameWidthAndando2, (float)playerTexture2Andando.height };
+    
+    unsigned frameDelay = 6;
 	unsigned frameDelayCounter = 0;
-	unsigned frameIndex = 0;
+    unsigned frameIndex = 0;
+	unsigned frameIndexJ = 0;
+    unsigned frameIndexF = 0;
 
-// -----------------------config dos frames parado---------------------------------------
+    // -----------------------config dos frames parado---------------------------------------
 
-    	unsigned numFramesParado = 10; //quantidade de sprites na imagem
-	int frameWidthParado = playerTextureParado.width / numFramesParado;
-	Rectangle frameRecParado = { 0.2f, 0.2f, (float)frameWidthParado, (float)playerTextureParado.height };
+    unsigned numFramesParado = 10; //quantidade de sprites na imagem
+	int frameWidthParado = playerTexture1Parado.width / numFramesParado;
+	Rectangle frameRecParado = { 0.2f, 0.2f, (float)frameWidthParado, (float)playerTexture1Parado.height };
+
+    unsigned numFramesParado2 = 8; //quantidade de sprites na imagem
+	int frameWidthParado2 = playerTexture2Parado.width / numFramesParado2;
+	Rectangle frameRecParado2 = { 0.2f, 0.2f, (float)frameWidthParado2, (float)playerTexture2Parado.height };
+
+    
+    //---------------------------config dos frames pulando-----------------------------------
+    
+    unsigned numFramesJump = 2; //quantidade de sprites na imagem
+	int frameWidthJump = playerTexture1Jump.width / numFramesJump;
+	Rectangle frameRecJump = { 0.2f, 0.2f, (float)frameWidthJump, (float)playerTexture1Jump.height };
+
+    unsigned numFramesFall = 2; //quantidade de sprites na imagem
+	int frameWidthFall = playerTexture1Fall.width / numFramesFall;
+	Rectangle frameRecFall = { 0.2f, 0.2f, (float)frameWidthFall, (float)playerTexture1Fall.height };
 
     SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
@@ -113,7 +154,7 @@ int main(void)
         //----------------------------------------------------------------------------------
         float deltaTime = GetFrameTime();
 
-        UpdatePlayer(&player, envItems, envItemsLength, deltaTime);
+        if(Start) UpdatePlayer(&player, envItems, envItemsLength, deltaTime);
 
         camera.zoom += ((float)GetMouseWheelMove()*0.05f);
 
@@ -126,39 +167,103 @@ int main(void)
             player.position = (Vector2){ 400, 280 };
         }
 
-        //------atualização de frames----------------------------------------
+        //------atualização de frames para o character----------------------------------------
 
-        if (IsKeyDown(KEY_RIGHT)) {
-			characterVelocity.x = characterSpeed;
-			if(frameRecAndando.width < 0) {
-				frameRecAndando.width = -frameRecAndando.width;
-			}
-        } else if (IsKeyDown(KEY_LEFT)) {
-			characterVelocity.x = -characterSpeed;
-			if(frameRecAndando.width > 0) {
-				frameRecAndando.width = -frameRecAndando.width;
-			}
-		} else {
-			characterVelocity.x = 0;
-		}
-		bool characterMoving = characterVelocity.x != 0.0f || characterVelocity.y != 0.0f;
-        
-        characterPosition = Vector2Add(characterPosition, characterVelocity);
-		
-		++frameDelayCounter;
-		if(frameDelayCounter > frameDelay) {
-			frameDelayCounter = 0;
-			
-			if(characterMoving) {
-				++frameIndex;
-				frameIndex %= numFramesAndando;
-				frameRecAndando.x = (float) frameWidthAndando * frameIndex;
-			} else {
+        if(!Start) {//No Menu
+            ++frameDelayCounter;
+            if(frameDelayCounter > frameDelay) {
+                frameDelayCounter = 0;
+            
                 ++frameIndex;
-				frameIndex %= numFramesParado;
-				frameRecParado.x = (float) frameWidthParado * frameIndex;
+                frameIndex %= numFramesParado;
+                frameRecParado.x = (float) frameWidthParado * frameIndex;
+
+                ++frameIndex;
+                frameIndex %= numFramesParado2;
+                frameRecParado2.x = (float) frameWidthParado2 * frameIndex;
             }
-		}
+        } else {//Dentro do jogo
+            
+            //Verificando se hitou o obstaculo
+            float delta;
+            int hitObstacle = 0;
+            for (int i = 0; i < envItemsLength; i++){
+                EnvItem *ei = envItems + i;
+                Vector2 *p = &(player.position);
+                if (ei->blocking && ei->rect.x <= p->x && ei->rect.x + ei->rect.width >= p->x && ei->rect.y >= p->y && ei->rect.y <= p->y + player.speed*delta) {
+                    hitObstacle = 1;
+                    player.speed = 0.0f;
+                    p->y = ei->rect.y;
+                }
+            }
+
+            if (!hitObstacle) {// Se não hitar o obstaculo
+                player.position.y += player.speed*delta;
+                player.speed += G*delta;
+                player.canJump = false;
+                grounded = false;
+
+                ++frameDelayCounter;
+                if(frameDelayCounter > frameDelay) {
+                    frameDelayCounter = 0;
+                
+                    ++frameIndexJ;
+                    frameIndexJ %= numFramesJump;
+                    frameRecJump.x = (float) frameWidthJump * frameIndexJ;
+
+                    ++frameIndexF;
+                    frameIndexF %= numFramesFall;
+                    frameRecFall.x = (float) frameWidthFall * frameIndexF;
+                }
+
+
+
+            } else { //Se hitar o obstaculo
+                grounded = true;
+                if (IsKeyDown(KEY_RIGHT)) {
+                    characterVelocity.x = characterSpeed;
+                    if(frameRecAndando.width < 0) {
+                        frameRecAndando.width = -frameRecAndando.width;
+                        frameRecAndando2.width = -frameRecAndando2.width;
+                    }
+                } else if (IsKeyDown(KEY_LEFT)) {
+                    characterVelocity.x = -characterSpeed;
+                    if(frameRecAndando.width > 0) {
+                        frameRecAndando.width = -frameRecAndando.width;
+                        frameRecAndando2.width = -frameRecAndando2.width;
+                    }
+                } else {
+                    characterVelocity.x = 0;
+                }
+                bool characterMoving = characterVelocity.x != 0.0f || characterVelocity.y != 0.0f;
+                
+                characterPosition = Vector2Add(characterPosition, characterVelocity);
+                
+                ++frameDelayCounter;
+                if(frameDelayCounter > frameDelay) {
+                    frameDelayCounter = 0;
+                    
+                    if(characterMoving) {
+                        ++frameIndex;
+                        frameIndex %= numFramesAndando;
+                        frameRecAndando.x = (float) frameWidthAndando * frameIndex;
+                        frameIndex %= numFramesAndando2;
+                        frameRecAndando2.x = (float) frameWidthAndando2 * frameIndex;
+                    } else {
+                        ++frameIndex;
+                        frameIndex %= numFramesParado;
+                        frameRecParado.x = (float) frameWidthParado * frameIndex;
+
+                        ++frameIndex;
+                        frameIndex %= numFramesParado2;
+                        frameRecParado2.x = (float) frameWidthParado2 * frameIndex;
+                    }
+                }
+            }
+        }
+
+        
+
 
         //cameraUpdaters[cameraOption](&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
         //----------------------------------------------------------------------------------
@@ -167,29 +272,68 @@ int main(void)
         //----------------------------------------------------------------------------------
         BeginDrawing();
 
-            ClearBackground(LIGHTGRAY);
-            
-            DrawTexture(texture, screenWidth/2 - texture.width/2, screenHeight/2 - texture.height/2, WHITE);
-
-            BeginMode2D(camera);
-
-                for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
+            if(!Start){
+                DrawTexture(texture, screenWidth/2 - texture.width/2, screenHeight/2 - texture.height/2, WHITE);
+                DrawText("NOME DO JOGO", 250, 50, 40, YELLOW);
+                DrawText("Press C for character 1 of V for character 2", 180, 150, 20, BLACK);
                 
-                Vector2 playerPos = { player.position.x - 20, player.position.y - 40 };
-	    	
-	    	if(IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT)) {
-                    DrawTextureRec(playerTextureAndando, frameRecAndando, playerPos, WHITE);
-                } else {
-                    DrawTextureRec(playerTextureParado, frameRecParado, playerPos, WHITE);
+                
+                Vector2 playerPos = { player.position.x - 200, player.position.y - 100 };
+                Vector2 playerPos2 = { player.position.x - (-35), player.position.y - 127 };
+                
+                DrawTextureRec(playerTexture1Parado, frameRecParado, playerPos, WHITE);
+                DrawTextureRec(playerTexture2Parado, frameRecParado2, playerPos2, WHITE);
+                
+                if(IsKeyPressed(KEY_C)) {
+                    escolha = 'c';
+                    Start = !Start;
+                } else if(IsKeyPressed(KEY_V)) {
+                    escolha = 'v';
+                    Start = !Start;
                 }
-              
+            }
+            
+            
 
-            EndMode2D();
+            if(Start) {
+                ClearBackground(LIGHTGRAY);
+            
+                DrawTexture(texture, screenWidth/2 - texture.width/2, screenHeight/2 - texture.height/2, WHITE);
 
-            DrawText("Controls:", 20, 20, 10, BLACK);
-            DrawText("- Right/Left to move", 40, 40, 10, DARKGRAY);
-            DrawText("- Space to jump", 40, 60, 10, DARKGRAY);
-            DrawText("- Mouse Wheel to Zoom in-out, R to reset zoom", 40, 80, 10, DARKGRAY);
+                BeginMode2D(camera);
+
+                    for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
+                
+                    Vector2 playerPos = { player.position.x - 20, player.position.y - 40 };
+
+                    if(grounded) {
+                        if((IsKeyDown(KEY_LEFT) ^ IsKeyDown(KEY_RIGHT)) && escolha == 'c') {
+                            DrawTextureRec(playerTexture1Andando, frameRecAndando, playerPos, WHITE);
+                        } else if(((!IsKeyDown(KEY_LEFT) && !IsKeyDown(KEY_RIGHT)) || (IsKeyDown(KEY_LEFT) && IsKeyDown(KEY_RIGHT))) && escolha == 'c') {
+                            DrawTextureRec(playerTexture1Parado, frameRecParado, playerPos, WHITE);
+                        } else if((IsKeyDown(KEY_LEFT) ^ IsKeyDown(KEY_RIGHT)) && escolha == 'v') {
+                            DrawTextureRec(playerTexture2Andando, frameRecAndando2, playerPos, WHITE);
+                        } else if(((!IsKeyDown(KEY_LEFT) && !IsKeyDown(KEY_RIGHT)) || (IsKeyDown(KEY_LEFT) && IsKeyDown(KEY_RIGHT))) && escolha == 'v'){
+                            DrawTextureRec(playerTexture2Parado, frameRecParado2, playerPos, WHITE);
+                        }
+                    }
+                    
+                    if(!grounded) {
+                        if(IsKeyDown(KEY_SPACE)) {
+                            DrawTextureRec(playerTexture1Jump, frameRecJump, playerPos, WHITE);
+                        } else {
+                            DrawTextureRec(playerTexture1Fall, frameRecFall, playerPos, WHITE);
+                        }
+                    }
+                    
+
+                EndMode2D();
+
+                DrawText("Controls:", 20, 20, 10, BLACK);
+                DrawText("- Right/Left to move", 40, 40, 10, DARKGRAY);
+                DrawText("- Space to jump", 40, 60, 10, DARKGRAY);
+                DrawText("- Mouse Wheel to Zoom in-out, R to reset zoom", 40, 80, 10, DARKGRAY);
+            }
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -203,9 +347,11 @@ int main(void)
     return 0;
 }
 
+
 bool isTextureValid(const Texture2D *texture) {
 	return texture->id > 0;
 }
+
 
 void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float delta)
 {
