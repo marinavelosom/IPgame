@@ -59,13 +59,11 @@ int main(void)
     const char *parado2 = "assets/character2parado.png";
 	Texture2D playerTexture2Parado = LoadTexture(parado2);
 
-    const char *jump = "assets/jump.png";
-	Texture2D playerTexture1Jump = LoadTexture(jump);
-
     const char *fall = "assets/Fall.png";
 	Texture2D playerTexture1Fall = LoadTexture(fall);
 
-
+    const char *fall2 = "assets/Fall2.png";
+	Texture2D playerTexture2Fall = LoadTexture(fall2);
     
 
     if(!isTextureValid(&playerTexture1Andando) || !isTextureValid(&playerTexture1Parado) || !isTextureValid(&playerTexture2Andando) || !isTextureValid(&playerTexture2Parado)) {
@@ -91,10 +89,10 @@ int main(void)
     player.speed = 0;
     player.canJump = false;
     EnvItem envItems[] = {
-        {{ -100, 400, 1000, 200 }, 1, GRAY },
-        {{ 300, 200, 400, 10 }, 1, GRAY },
-        {{ 250, 300, 100, 10 }, 1, GRAY },
-        {{ 650, 300, 100, 10 }, 1, GRAY }
+        {{ -100, 400, 1000, 200 }, 1, GREEN },
+        {{ 300, 200, 400, 10 }, 1, GREEN },
+        {{ 250, 300, 100, 10 }, 1, GREEN },
+        {{ 650, 300, 100, 10 }, 1, GREEN }
     };
 
     int envItemsLength = sizeof(envItems)/sizeof(envItems[0]);
@@ -120,8 +118,8 @@ int main(void)
     unsigned frameDelay = 6;
 	unsigned frameDelayCounter = 0;
     unsigned frameIndex = 0;
-	unsigned frameIndexJ = 0;
     unsigned frameIndexF = 0;
+    unsigned frameIndexF2 = 0;
 
     // -----------------------config dos frames parado---------------------------------------
 
@@ -135,14 +133,15 @@ int main(void)
 
     
     //---------------------------config dos frames pulando-----------------------------------
-    
-    unsigned numFramesJump = 2; //quantidade de sprites na imagem
-	int frameWidthJump = playerTexture1Jump.width / numFramesJump;
-	Rectangle frameRecJump = { 0.2f, 0.2f, (float)frameWidthJump, (float)playerTexture1Jump.height };
 
     unsigned numFramesFall = 2; //quantidade de sprites na imagem
 	int frameWidthFall = playerTexture1Fall.width / numFramesFall;
 	Rectangle frameRecFall = { 0.2f, 0.2f, (float)frameWidthFall, (float)playerTexture1Fall.height };
+
+    unsigned numFramesFall2 = 2; //quantidade de sprites na imagem
+	int frameWidthFall2 = playerTexture2Fall.width / numFramesFall2;
+	Rectangle frameRecFall2 = { 0.2f, 0.2f, (float)frameWidthFall2, (float)playerTexture2Fall.height };
+
 
     SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
@@ -206,14 +205,14 @@ int main(void)
                 ++frameDelayCounter;
                 if(frameDelayCounter > frameDelay) {
                     frameDelayCounter = 0;
-                
-                    ++frameIndexJ;
-                    frameIndexJ %= numFramesJump;
-                    frameRecJump.x = (float) frameWidthJump * frameIndexJ;
 
                     ++frameIndexF;
                     frameIndexF %= numFramesFall;
                     frameRecFall.x = (float) frameWidthFall * frameIndexF;
+
+                    ++frameIndexF2;
+                    frameIndexF2 %= numFramesFall2;
+                    frameRecFall2.x = (float) frameWidthFall2 * frameIndexF2;
                 }
 
 
@@ -221,16 +220,25 @@ int main(void)
             } else { //Se hitar o obstaculo
                 grounded = true;
                 if (IsKeyDown(KEY_RIGHT)) {
+                    
                     characterVelocity.x = characterSpeed;
                     if(frameRecAndando.width < 0) {
                         frameRecAndando.width = -frameRecAndando.width;
+                        frameRecParado.width = -frameRecParado.width;
+                        frameRecFall.width = -frameRecFall.width;
                         frameRecAndando2.width = -frameRecAndando2.width;
+                        frameRecParado2.width = -frameRecParado2.width;
+                        frameRecFall2.width = -frameRecFall2.width;
                     }
                 } else if (IsKeyDown(KEY_LEFT)) {
                     characterVelocity.x = -characterSpeed;
                     if(frameRecAndando.width > 0) {
                         frameRecAndando.width = -frameRecAndando.width;
+                        frameRecParado.width = -frameRecParado.width;
+                        frameRecFall.width = -frameRecFall.width;
                         frameRecAndando2.width = -frameRecAndando2.width;
+                        frameRecParado2.width = -frameRecParado2.width;
+                        frameRecFall2.width = -frameRecFall2.width;
                     }
                 } else {
                     characterVelocity.x = 0;
@@ -305,8 +313,9 @@ int main(void)
                     for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
                 
                     Vector2 playerPos = { player.position.x - 20, player.position.y - 40 };
-
+                    double currentTime = 0;
                     if(grounded) {
+                        currentTime = 0;
                         if((IsKeyDown(KEY_LEFT) ^ IsKeyDown(KEY_RIGHT)) && escolha == 'c') {
                             DrawTextureRec(playerTexture1Andando, frameRecAndando, playerPos, WHITE);
                         } else if(((!IsKeyDown(KEY_LEFT) && !IsKeyDown(KEY_RIGHT)) || (IsKeyDown(KEY_LEFT) && IsKeyDown(KEY_RIGHT))) && escolha == 'c') {
@@ -319,10 +328,11 @@ int main(void)
                     }
                     
                     if(!grounded) {
-                        if(IsKeyDown(KEY_SPACE)) {
-                            DrawTextureRec(playerTexture1Jump, frameRecJump, playerPos, WHITE);
-                        } else {
+                        if(escolha == 'c') {
                             DrawTextureRec(playerTexture1Fall, frameRecFall, playerPos, WHITE);
+                        }
+                        if(escolha == 'v') {
+                            DrawTextureRec(playerTexture2Fall, frameRecFall2, playerPos, WHITE);
                         }
                     }
                     
