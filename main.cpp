@@ -313,9 +313,7 @@ int main(void)
                     for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
                 
                     Vector2 playerPos = { player.position.x - 20, player.position.y - 40 };
-                    double currentTime = 0;
                     if(grounded) {
-                        currentTime = 0;
                         if((IsKeyDown(KEY_LEFT) ^ IsKeyDown(KEY_RIGHT)) && escolha == 'c') {
                             DrawTextureRec(playerTexture1Andando, frameRecAndando, playerPos, WHITE);
                         } else if(((!IsKeyDown(KEY_LEFT) && !IsKeyDown(KEY_RIGHT)) || (IsKeyDown(KEY_LEFT) && IsKeyDown(KEY_RIGHT))) && escolha == 'c') {
