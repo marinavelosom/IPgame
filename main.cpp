@@ -48,22 +48,22 @@ int main(void)
     Music music = LoadMusicStream("audio/music.wav"); 
     PlayMusicStream(music);
     
-    const char *andando1 = "assets/character1andando.png";
+    const char *andando1 = "assets/Run 1.png";
 	Texture2D playerTexture1Andando = LoadTexture(andando1);
 
-    const char *parado1 = "assets/character1parado.png";
+    const char *parado1 = "assets/Idle 1.png";
 	Texture2D playerTexture1Parado = LoadTexture(parado1);
 
-    const char *andando2 = "assets/character2andando.png";
+    const char *andando2 = "assets/Run 2.png";
 	Texture2D playerTexture2Andando = LoadTexture(andando2);
 
-    const char *parado2 = "assets/character2parado.png";
+    const char *parado2 = "assets/Idle 12.png";
 	Texture2D playerTexture2Parado = LoadTexture(parado2);
 
-    const char *fall = "assets/Fall.png";
+    const char *fall = "assets/Fall 1.png";
 	Texture2D playerTexture1Fall = LoadTexture(fall);
 
-    const char *fall2 = "assets/Fall2.png";
+    const char *fall2 = "assets/Fall 2.png";
 	Texture2D playerTexture2Fall = LoadTexture(fall2);
     
     
@@ -156,11 +156,11 @@ int main(void)
 
     // -----------------------config dos frames parado---------------------------------------
 
-    unsigned numFramesParado = 10; //quantidade de sprites na imagem
+    unsigned numFramesParado = 8.9; //quantidade de sprites na imagem
 	int frameWidthParado = playerTexture1Parado.width / numFramesParado;
 	Rectangle frameRecParado = { 0.2f, 0.2f, (float)frameWidthParado, (float)playerTexture1Parado.height };
 
-    unsigned numFramesParado2 = 8; //quantidade de sprites na imagem
+    unsigned numFramesParado2 = 10; //quantidade de sprites na imagem
 	int frameWidthParado2 = playerTexture2Parado.width / numFramesParado2;
 	Rectangle frameRecParado2 = { 0.2f, 0.2f, (float)frameWidthParado2, (float)playerTexture2Parado.height };
 
@@ -387,8 +387,8 @@ int main(void)
                 DrawTexture(title, 200, 20, WHITE);
                 DrawText("Press C for character 1 of V for character 2", 180, 200, 20, BLACK);
                 
-                Vector2 playerPos = { player.position.x - 200, player.position.y - 70 };
-                Vector2 playerPos2 = { player.position.x - (-35), player.position.y - 97 };
+                Vector2 playerPos = { player.position.x - 100, player.position.y - 97 };
+                Vector2 playerPos2 = { player.position.x , player.position.y - 97 };
                 
                 DrawTextureRec(playerTexture1Parado, frameRecParado, playerPos, WHITE);
                 DrawTextureRec(playerTexture2Parado, frameRecParado2, playerPos2, WHITE);
