@@ -120,16 +120,50 @@ int main(void)
     player.position = (Vector2){ 400, 280 };
     player.speed = 0;
     player.canJump = false;
+    
+    Color transparent = (Color){0, 0, 0, 0};
+    
     EnvItem envItems[] = {
-        {{ -100, 400, 1000, 200 }, 1, GRAY },
-        {{ 300, 200, 400, 10 }, 1, GRAY },
-        {{ 250, 300, 100, 10 }, 1, GRAY },
-        {{ 650, 300, 100, 10 }, 1, GRAY },
-        {{ 100, 90, 100, 10 }, 1, GRAY }
+        {{ -100, 400, 1000, 200 }, 1, transparent }, //floor 1
+        {{ 1385, 490, 580, 100 }, 1, transparent }, //floor 2
+        {{ 2600, 490, 580, 100 }, 1, transparent }, //floor 3
+        {{ 1050, 400, 100, 10 }, 1, transparent },
+        {{ 1200, 300, 100, 10 }, 1, transparent },
+        {{ 100, 90, 100, 10 }, 1, transparent },
+        {{900, 600, 490, 20}, 1, transparent}, //lake 1
+        {{ 2050, 400, 165, 10 }, 1, transparent },
+        {{ 2300, 400, 165, 10 }, 1, transparent },
     };
-
+    
     int envItemsLength = sizeof(envItems)/sizeof(envItems[0]);
-
+    
+    //textures map
+    const char *floor = "assets/floor1.png";
+    Texture2D TextureFloor = LoadTexture(floor);
+    
+    const char *floor2 = "assets/floor2.png";
+    Texture2D TextureFloor2 = LoadTexture(floor2);
+    
+    const char *floor3 = "assets/floor3.png";
+    Texture2D TextureFloor3 = LoadTexture(floor3);
+    
+    const char *lake = "assets/lake1.png";
+    Texture2D TextureLake = LoadTexture(lake);
+    
+    const char *plataform1 = "assets/plataformSky1.png";
+    Texture2D TexturePlataform = LoadTexture(plataform1);
+    
+    const char *plataform2 = "assets/plataformSky2.png";
+    Texture2D TexturePlataform2 = LoadTexture(plataform2);
+    
+    //objects
+    const char *tree = "assets/tree1.png";
+    Texture2D TextureTree = LoadTexture(tree);
+    
+    const char *plate = "assets/plate1.png";
+    Texture2D TexturePlate = LoadTexture(plate);
+    
+    //camera
     Camera2D camera = { 0 };
     camera.target = player.position;
     camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
@@ -420,10 +454,29 @@ int main(void)
                 
                 DrawTextureEx(bushes, (Vector2){ scrollingBush, 130 }, 0.0f, 2.0f, WHITE);
                 DrawTextureEx(bushes, (Vector2){ bushes.width*2 + scrollingBush, 130 }, 0.0f, 2.0f, WHITE);
-
+                
+                
                 BeginMode2D(camera);
 
                     for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
+                    
+                    //objects 
+                    DrawTexture(TextureTree, 550, 330, WHITE);
+                    DrawTexture(TexturePlate, 50, 550, WHITE);
+                    
+                    //ground
+                    DrawTexture(TextureFloor, 0, 490, WHITE);
+                    DrawTexture(TextureFloor2, 1385, 490, WHITE);
+                    DrawTexture(TextureFloor3, 2600, 490, WHITE);
+                    
+                    //lake
+                    DrawTexture(TextureLake, 1000, 600, WHITE);
+                    //plataforms
+                    DrawTexture(TexturePlataform, 1050, 400, WHITE);
+                    DrawTexture(TexturePlataform, 1200, 300, WHITE);
+                    DrawTexture(TexturePlataform2, 2050, 400, WHITE);
+                    DrawTexture(TexturePlataform2, 2300, 400, WHITE);
+                     
                     
                     Vector2 playerPos = { player.position.x - 20, player.position.y - 40 };
 
