@@ -124,13 +124,15 @@ int main(void)
     Color transparent = (Color){0, 0, 0, 0};
     
     EnvItem envItems[] = {
-        {{ -100, 400, 1000, 200 }, 1, transparent }, //floor 1
-        {{ 1385, 490, 580, 100 }, 1, transparent }, //floor 2
-        {{ 2600, 490, 580, 100 }, 1, transparent }, //floor 3
-        {{ 1050, 400, 100, 10 }, 1, transparent },
+      //{{ X, Y, W, H }},
+        {{ 0, 600, 300, 30 }, 1, transparent}, //plataform 1
+        {{ 300, 490, 660, 140 }, 1, transparent }, //floor 1
+        {{ 1380, 490, 580, 140 }, 1, transparent }, //floor 2
+        {{ 2600, 490, 580, 140 }, 1, transparent }, //floor 3
+        {{ 1050, 400, 100, 10 }, 1, transparent }, 
         {{ 1200, 300, 100, 10 }, 1, transparent },
         {{ 100, 90, 100, 10 }, 1, transparent },
-        {{900, 600, 490, 20}, 1, transparent}, //lake 1
+        {{ 965, 600, 415, 28 }, 1, transparent }, //lake 1
         {{ 2050, 400, 165, 10 }, 1, transparent },
         {{ 2300, 400, 165, 10 }, 1, transparent },
     };
@@ -156,12 +158,18 @@ int main(void)
     const char *plataform2 = "assets/plataformSky2.png";
     Texture2D TexturePlataform2 = LoadTexture(plataform2);
     
+    const char *plataformGround = "assets/plataformGround.png";
+    Texture2D TexturePlataformG = LoadTexture(plataformGround);
+    
     //objects
-    const char *tree = "assets/tree1.png";
+    const char *tree = "assets/tree2.png";
     Texture2D TextureTree = LoadTexture(tree);
     
     const char *plate = "assets/plate1.png";
     Texture2D TexturePlate = LoadTexture(plate);
+    
+    const char *rock = "assets/rock1.png";
+    Texture2D TextureRock = LoadTexture(rock);
     
     //camera
     Camera2D camera = { 0 };
@@ -463,14 +471,17 @@ int main(void)
                     //objects 
                     DrawTexture(TextureTree, 550, 330, WHITE);
                     DrawTexture(TexturePlate, 50, 550, WHITE);
-                    
-                    //ground
-                    DrawTexture(TextureFloor, 0, 490, WHITE);
-                    DrawTexture(TextureFloor2, 1385, 490, WHITE);
-                    DrawTexture(TextureFloor3, 2600, 490, WHITE);
+                    DrawTexture(TextureRock, 750, 470, WHITE);
                     
                     //lake
-                    DrawTexture(TextureLake, 1000, 600, WHITE);
+                    DrawTexture(TextureLake, 965, 600, WHITE);
+                    
+                    //ground
+                    DrawTexture(TexturePlataformG, 0, 600, WHITE);
+                    DrawTexture(TextureFloor, 300, 490, WHITE);
+                    DrawTexture(TextureFloor2, 1380, 490, WHITE);
+                    DrawTexture(TextureFloor3, 2600, 490, WHITE);
+                  
                     //plataforms
                     DrawTexture(TexturePlataform, 1050, 400, WHITE);
                     DrawTexture(TexturePlataform, 1200, 300, WHITE);

@@ -1,0 +1,4 @@
+//tirar o zoom
+//ajeitar posição do personagem
+//interação do personagem com subidas (rampa)
+//terminar montagem do mapa 1
