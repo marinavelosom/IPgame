@@ -76,31 +76,31 @@ int main(void)
     Texture2D button = LoadTexture("assets/buttonStartTest.png"); // Load start button texture
     Texture2D controlButton = LoadTexture("assets/buttonControlsTest.png"); // Load controls button texture
     
-    //int btnState = 0;               // Button state: 0-NORMAL, 1-MOUSE_HOVER, 2-PRESSED
-    bool btnAction = false;         // Button action should be activated
+    bool btnAction = false;         
     bool btnActionControl = false;
     
     Vector2 mousePoint = { 0.0f, 0.0f };
     
-    //controls 
+    //-------------- Config. Button Control ------------------------
     Texture2D controls = LoadTexture("assets/controlMenu.png");
     Texture back = LoadTexture("assets/backButton.png");
     
-    // Define frame rectangle for drawing
+    //-------------- Config. Frames ------------------------
     float frameHeight = (float)button.height/NUM_FRAMES;
     Rectangle sourceRec = { 0, 0, (float)button.width, frameHeight };
     Rectangle sourceRecBack = { 0, 0, (float)back.width, (float)back.height };
     
-    //transform texture in rec for mouse collision
+    //-------------- Config. Buttons Rec ------------------------
     Rectangle btnBounds = { screenWidth/2.0f - controlButton.width/2.0f, screenHeight/2.0f - controlButton.height/NUM_FRAMES/2.0f, (float)controlButton.width, frameHeight };
     Rectangle btnControlBounds = { screenWidth/2.0f - controlButton.width/2.0f, ( screenHeight/2.0f - controlButton.height/NUM_FRAMES/2.0f ) + 100, (float)controlButton.width, frameHeight };
     Rectangle btnBackBounds = { 330, 38, (float)back.width, frameHeight  };
     
     
-    // title
+    //-------------- Config. Title -----------------------------------------
+    
     Texture2D title = LoadTexture("assets/title.png");
     
-    //texture background
+    //-------------- Config. background -----------------------------------------
     Texture2D sky = LoadTexture("assets/sky.png");
     Texture2D mountainBack = LoadTexture("assets/mountainsBack.png");
     Texture2D mountainFront = LoadTexture("assets/mountainsFront.png");
@@ -121,6 +121,8 @@ int main(void)
     player.speed = 0;
     player.canJump = false;
     
+    //-------------- Config. Map ------------------------
+    
     Color transparent = (Color){0, 0, 0, 0};
     
     EnvItem envItems[] = {
@@ -135,11 +137,12 @@ int main(void)
         {{ 965, 600, 415, 28 }, 1, transparent }, //lake 1
         {{ 2050, 400, 165, 10 }, 1, transparent },
         {{ 2300, 400, 165, 10 }, 1, transparent },
+        {{ 3300, 490, 580, 140 }, 1, transparent }, //floor 3
     };
     
     int envItemsLength = sizeof(envItems)/sizeof(envItems[0]);
     
-    //textures map
+    //-------------- Textures map ------------------------
     const char *floor = "assets/floor1.png";
     Texture2D TextureFloor = LoadTexture(floor);
     
@@ -161,7 +164,7 @@ int main(void)
     const char *plataformGround = "assets/plataformGround.png";
     Texture2D TexturePlataformG = LoadTexture(plataformGround);
     
-    //objects
+    //-------------- Objects ------------------------
     const char *tree = "assets/tree2.png";
     Texture2D TextureTree = LoadTexture(tree);
     
@@ -171,7 +174,7 @@ int main(void)
     const char *rock = "assets/rock1.png";
     Texture2D TextureRock = LoadTexture(rock);
     
-    //camera
+    //-------------- Camera ------------------------
     Camera2D camera = { 0 };
     camera.target = player.position;
     camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
@@ -263,6 +266,7 @@ int main(void)
         } 
         
         //definitions for background menu ----------------------------------------------------------------------------------
+        
         scrollingSkyMenu -= 0.1f;
         scrollingBackMenu -= 0.5f;
         scrollingFrontMenu -= 1.0f;
@@ -272,6 +276,11 @@ int main(void)
         if(scrollingBackMenu <= -mountainBack.width * 2) scrollingBackMenu = 0;
         if(scrollingFrontMenu <= -mountainFront.width * 2) scrollingFrontMenu = 0;
         if(scrollingBushMenu <= -bushes.width * 2) scrollingBushMenu = 0;
+        
+        if(scrollingSky <= -sky.width * 2) scrollingSky = 0;
+        if(scrollingBack <= -mountainBack.width * 2) scrollingBack = 0;
+        if(scrollingFront <= -mountainFront.width * 2) scrollingFront = 0;
+        if(scrollingBush <= -bushes.width * 2) scrollingBush = 0;
         
         //-----------------------------zoom config------------------------------------------------
         
@@ -338,12 +347,15 @@ int main(void)
                     frameIndexF2 %= numFramesFall2;
                     frameRecFall2.x = (float) frameWidthFall2 * frameIndexF2;
                 }
-
-
-
+                
             } else { //Se hitar o obstaculo
                 grounded = true;
                 if (IsKeyDown(KEY_RIGHT)) {
+                    
+                    scrollingSky -= 0.1f;
+                    scrollingBack -= 0.5f;
+                    scrollingFront -= 1.0f;
+                    scrollingBush -= 1.5f;
                     
                     characterVelocity.x = characterSpeed;
                     if(frameRecAndando.width < 0) {
@@ -355,6 +367,12 @@ int main(void)
                         frameRecFall2.width = -frameRecFall2.width;
                     }
                 } else if (IsKeyDown(KEY_LEFT)) {
+                    
+                    scrollingSky += 0.1f;
+                    scrollingBack += 0.5f;
+                    scrollingFront+= 1.0f;
+                    scrollingBush += 1.5f;
+                    
                     characterVelocity.x = -characterSpeed;
                     if(frameRecAndando.width > 0) {
                         frameRecAndando.width = -frameRecAndando.width;
@@ -403,6 +421,7 @@ int main(void)
       
       BeginDrawing();
             //background animated for menu
+            
             DrawTextureEx(sky, (Vector2){ scrollingSkyMenu, 0 }, 0.0f, 2.0f, WHITE);
             DrawTextureEx(sky, (Vector2){ sky.width*2 + scrollingSkyMenu, 0 }, 0.0f, 2.0f, WHITE);
             
@@ -414,6 +433,7 @@ int main(void)
             
             DrawTextureEx(bushes, (Vector2){ scrollingBushMenu, 130 }, 0.0f, 2.0f, WHITE);
             DrawTextureEx(bushes, (Vector2){ bushes.width*2 + scrollingBushMenu, 130 }, 0.0f, 2.0f, WHITE);
+            
                 
             if(!btnAction) {
                 DrawTextureRec(button, sourceRec, (Vector2){ btnBounds.x, btnBounds.y }, WHITE);
@@ -449,20 +469,19 @@ int main(void)
             if(Start && auxChoiceCharacter == 1){
                 // add to guarantee break with previous screen
                 aux++;
-                ClearBackground(LIGHTGRAY);
+                //ClearBackground(LIGHTGRAY);
                 
                 DrawTextureEx(sky, (Vector2){ scrollingSky, 0 }, 0.0f, 2.0f, WHITE);
                 DrawTextureEx(sky, (Vector2){ sky.width*2 + scrollingSky, 0 }, 0.0f, 2.0f, WHITE);
                 
-                DrawTextureEx(mountainBack, (Vector2){ scrollingBack, 20 }, 0.0f, 2.0f, WHITE);
-                DrawTextureEx(mountainBack, (Vector2){ mountainBack.width*2 + scrollingBack, 20}, 0.0f, 2.0f, WHITE);
+                DrawTextureEx(mountainBack, (Vector2){ scrollingBack, 10 }, 0.0f, 2.0f, WHITE);
+                DrawTextureEx(mountainBack, (Vector2){ mountainBack.width*2 + scrollingBack, 10 }, 0.0f, 2.0f, WHITE);
                 
                 DrawTextureEx(mountainFront, (Vector2){ scrollingFront, 130 }, 0.0f, 2.0f, WHITE);
                 DrawTextureEx(mountainFront, (Vector2){ mountainFront.width*2 + scrollingFront, 130 }, 0.0f, 2.0f, WHITE);
                 
                 DrawTextureEx(bushes, (Vector2){ scrollingBush, 130 }, 0.0f, 2.0f, WHITE);
                 DrawTextureEx(bushes, (Vector2){ bushes.width*2 + scrollingBush, 130 }, 0.0f, 2.0f, WHITE);
-                
                 
                 BeginMode2D(camera);
 
@@ -481,7 +500,8 @@ int main(void)
                     DrawTexture(TextureFloor, 300, 490, WHITE);
                     DrawTexture(TextureFloor2, 1380, 490, WHITE);
                     DrawTexture(TextureFloor3, 2600, 490, WHITE);
-                  
+                    DrawTexture(TextureFloor3, 3300, 490, WHITE);
+                    
                     //plataforms
                     DrawTexture(TexturePlataform, 1050, 400, WHITE);
                     DrawTexture(TexturePlataform, 1200, 300, WHITE);
