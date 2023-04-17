@@ -18,6 +18,10 @@ typedef struct EnvItem {
     Color color;
 } EnvItem;
 
+typedef struct Bat {
+    Vector2 position;
+} Bat;
+
 //----------------------------------------------------------------------------------
 // Module functions declaration
 //----------------------------------------------------------------------------------
@@ -180,7 +184,8 @@ int main(void)
     camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
-
+    
+    
     // ----------------Config dos frames andando -----------------------------------------
 
     unsigned numFramesAndando = 4; //quantidade de sprites na imagem
@@ -198,10 +203,11 @@ int main(void)
     unsigned frameIndex = 0;
     unsigned frameIndexF = 0;
     unsigned frameIndexF2 = 0;
+    unsigned frameIndexBat = 0;
 
-    // -----------------------config dos frames parado---------------------------------------
+    // -----------------------Config dos frames parado---------------------------------------
 
-    unsigned numFramesParado = 8.9; //quantidade de sprites na imagem
+    unsigned numFramesParado = 8; //quantidade de sprites na imagem
 	int frameWidthParado = playerTexture1Parado.width / numFramesParado;
 	Rectangle frameRecParado = { 0.2f, 0.2f, (float)frameWidthParado, (float)playerTexture1Parado.height };
 
@@ -210,7 +216,7 @@ int main(void)
 	Rectangle frameRecParado2 = { 0.2f, 0.2f, (float)frameWidthParado2, (float)playerTexture2Parado.height };
 
     
-    //---------------------------config dos frames pulando-----------------------------------
+    //--------------------------- Config dos frames pulando-----------------------------------
 
     unsigned numFramesFall = 2; //quantidade de sprites na imagem
 	int frameWidthFall = playerTexture1Fall.width / numFramesFall;
@@ -220,7 +226,7 @@ int main(void)
 	int frameWidthFall2 = playerTexture2Fall.width / numFramesFall2;
 	Rectangle frameRecFall2 = { 0.2f, 0.2f, (float)frameWidthFall2, (float)playerTexture2Fall.height };
 
-     //------------config camera--------------------------------------------------
+     //--------------------------- Config camera--------------------------------------------------
 
     // Store pointers to the multiple update camera functions
     void (*cameraUpdaters[])(Camera2D*, Player*, EnvItem*, int, float, int, int) = {
@@ -230,8 +236,24 @@ int main(void)
     int cameraOption = 0;
 
     SetTargetFPS(60);
+    
     //--------------------------------------------------------------------------------------
     int auxChoiceCharacter = 0, auxControl = 0, aux = 0;
+    
+    //===================== Confg. bat ======================================================
+    
+    const char *bat = "assets/batSprite.png";
+    Texture2D TextureBat = LoadTexture(bat);
+    
+    unsigned numFramesBat = 4;
+    int frameWidthBat = TextureBat.width / numFramesBat;
+    Rectangle frameBat = { 0.2f, 0.2f, (float)frameWidthBat, (float)TextureBat.height };
+    
+    Bat bat1 = { 0 };
+    bat1.position = (Vector2){ 1700, 380 };
+    
+    //=======================================================================================
+    
     // Main game loop
     while (!WindowShouldClose())
     {   
@@ -309,7 +331,7 @@ int main(void)
                 ++frameIndex;
                 frameIndex %= numFramesParado;
                 frameRecParado.x = (float) frameWidthParado * frameIndex;
-
+                
                 ++frameIndex;
                 frameIndex %= numFramesParado2;
                 frameRecParado2.x = (float) frameWidthParado2 * frameIndex;
@@ -328,7 +350,6 @@ int main(void)
                     p->y = ei->rect.y;
                 }
             }
-
             if (!hitObstacle) {// Se não hitar o obstaculo
                 player.position.y += player.speed*delta;
                 player.speed += G*delta;
@@ -346,6 +367,10 @@ int main(void)
                     ++frameIndexF2;
                     frameIndexF2 %= numFramesFall2;
                     frameRecFall2.x = (float) frameWidthFall2 * frameIndexF2;
+                    
+                    ++frameIndexBat;
+                    frameIndexBat %= numFramesBat;
+                    frameBat.x = (float)frameWidthBat * frameIndexBat;
                 }
                 
             } else { //Se hitar o obstaculo
@@ -407,11 +432,16 @@ int main(void)
                         ++frameIndex;
                         frameIndex %= numFramesParado2;
                         frameRecParado2.x = (float) frameWidthParado2 * frameIndex;
+                        
+                        ++frameIndexBat;
+                        frameIndexBat %= numFramesBat;
+                        frameBat.x = (float)frameWidthBat * frameIndexBat;
                     }
                 }
+                
             }
         }
-
+        
         // Call update camera function by its pointer
         cameraUpdaters[cameraOption](&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
         
@@ -434,8 +464,8 @@ int main(void)
             DrawTextureEx(bushes, (Vector2){ scrollingBushMenu, 130 }, 0.0f, 2.0f, WHITE);
             DrawTextureEx(bushes, (Vector2){ bushes.width*2 + scrollingBushMenu, 130 }, 0.0f, 2.0f, WHITE);
             
-                
             if(!btnAction) {
+                DrawTexture(title, 200, 20, WHITE);
                 DrawTextureRec(button, sourceRec, (Vector2){ btnBounds.x, btnBounds.y }, WHITE);
                 DrawTextureRec(controlButton, sourceRec, (Vector2){ btnControlBounds.x, btnControlBounds.y }, WHITE);
                 
@@ -445,7 +475,6 @@ int main(void)
                 }
             } 
             if(btnAction && aux == 1) {
-                //DrawText("NOME DO JOGO", 250, 50, 40, YELLOW);
                 DrawTexture(title, 200, 20, WHITE);
                 DrawText("Press C for character 1 of V for character 2", 180, 200, 20, BLACK);
                 
@@ -454,6 +483,7 @@ int main(void)
                 
                 DrawTextureRec(playerTexture1Parado, frameRecParado, playerPos, WHITE);
                 DrawTextureRec(playerTexture2Parado, frameRecParado2, playerPos2, WHITE);
+                
                 
                 if(IsKeyPressed(KEY_C)) {
                     escolha = 'c';
@@ -507,7 +537,10 @@ int main(void)
                     DrawTexture(TexturePlataform, 1200, 300, WHITE);
                     DrawTexture(TexturePlataform2, 2050, 400, WHITE);
                     DrawTexture(TexturePlataform2, 2300, 400, WHITE);
-                     
+                    
+                    //bat
+                    Vector2 batPos = { bat1.position.x, bat1.position.y };
+                    DrawTextureRec(TextureBat, frameBat, batPos, WHITE);
                     
                     Vector2 playerPos = { player.position.x - 20, player.position.y - 40 };
 
@@ -596,8 +629,8 @@ void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float d
 
     if (!hitObstacle)
     {
-        player->position.y += player->speed*delta;
-        player->speed += G*delta;
+        player->position.y += player-> speed * delta;
+        player->speed += G * delta;
         player->canJump = false;
     }
     else player->canJump = true;
