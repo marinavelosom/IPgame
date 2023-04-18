@@ -22,6 +22,9 @@ typedef struct Bat {
     Vector2 position;
 } Bat;
 
+typedef struct Mush {
+    Vector2 position;
+} Mush;
 //----------------------------------------------------------------------------------
 // Module functions declaration
 //----------------------------------------------------------------------------------
@@ -204,6 +207,7 @@ int main(void)
     unsigned frameIndexF = 0;
     unsigned frameIndexF2 = 0;
     unsigned frameIndexBat = 0;
+    unsigned frameIndexMush = 0;
 
     // -----------------------Config dos frames parado---------------------------------------
 
@@ -251,6 +255,20 @@ int main(void)
     
     Bat bat1 = { 0 };
     bat1.position = (Vector2){ 1700, 380 };
+    
+    //=======================================================================================
+    
+    //===================== Confg. mushroom ======================================================
+    
+    const char *mush = "assets/mushroomIdle.png";
+    Texture2D TextureMush = LoadTexture(mush);
+    
+    unsigned numFramesMush = 4;
+    int frameWidthMush = TextureMush.width / numFramesMush;
+    Rectangle frameMush = { 0.2f, 0.2f, (float)frameWidthMush, (float)TextureMush.height };
+    
+    Mush mush1 = { 0 };
+    mush1.position = (Vector2){ 3400, 195 };
     
     //=======================================================================================
     
@@ -371,6 +389,11 @@ int main(void)
                     ++frameIndexBat;
                     frameIndexBat %= numFramesBat;
                     frameBat.x = (float)frameWidthBat * frameIndexBat;
+                    
+                    ++frameIndexMush;
+                    frameIndexMush %= numFramesMush;
+                    frameMush.x = (float)frameWidthMush * frameIndexMush;
+                    
                 }
                 
             } else { //Se hitar o obstaculo
@@ -436,6 +459,10 @@ int main(void)
                         ++frameIndexBat;
                         frameIndexBat %= numFramesBat;
                         frameBat.x = (float)frameWidthBat * frameIndexBat;
+                        
+                        ++frameIndexMush;
+                        frameIndexMush %= numFramesMush;
+                        frameMush.x = (float)frameWidthMush * frameIndexMush;
                     }
                 }
                 
@@ -541,6 +568,10 @@ int main(void)
                     //bat
                     Vector2 batPos = { bat1.position.x, bat1.position.y };
                     DrawTextureRec(TextureBat, frameBat, batPos, WHITE);
+                    
+                    //mushroom
+                    Vector2 mushPos = { mush1.position.x, mush1.position.y };
+                    DrawTextureRec(TextureMush, frameMush, mushPos, WHITE);
                     
                     Vector2 playerPos = { player.position.x - 20, player.position.y - 40 };
 
