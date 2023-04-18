@@ -10,4 +10,4 @@ And it resulted in this beautiful game!!
 
 ### 🧙🏿‍♀️🧙🏿‍♂️ Team
 - **Marina Melo** - *Game Developer and Game Designer* - [marinavelosom](https://github.com/marinavelosom)
-- **Gabriel** - *Game Developer and Game Designer* - [zGabrie1](https://github.com/zGabrie1)
+- **Gabriel Soares** - *Game Developer and Game Designer* - [zGabrie1](https://github.com/zGabrie1)
