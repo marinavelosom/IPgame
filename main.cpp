@@ -1,30 +1,18 @@
 #include "raylib.h"
 #include "raymath.h"
 
+//#include "include/updatePlayer.h"
+#include "include/structPlayer.h"
+#include "include/structEnvItem.h"
+#include "include/structBat.h"
+#include "include/structMashroom.h"
+
 #define G 400
 #define PLAYER_JUMP_SPD 350.0f
 #define PLAYER_HOR_SPD 200.0f
 #define NUM_FRAMES  2
 
-typedef struct Player {
-    Vector2 position;
-    float speed;
-    bool canJump;
-} Player;
 
-typedef struct EnvItem {
-    Rectangle rect;
-    int blocking;
-    Color color;
-} EnvItem;
-
-typedef struct Bat {
-    Vector2 position;
-} Bat;
-
-typedef struct Mush {
-    Vector2 position;
-} Mush;
 //----------------------------------------------------------------------------------
 // Module functions declaration
 //----------------------------------------------------------------------------------
@@ -182,12 +170,12 @@ int main(void)
     Texture2D TextureRock = LoadTexture(rock);
     
     //-------------- Camera ------------------------
+    
     Camera2D camera = { 0 };
     camera.target = player.position;
     camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
-    
     
     // ----------------Config dos frames andando -----------------------------------------
 
@@ -641,9 +629,10 @@ int main(void)
 
     return 0;
 }
+//================================================================================================================================================================================
+//estou tentando alocar essa função no arquivo em include -> mas ta tendo erro
 
-void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float delta)
-{
+void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float delta) {
     if (IsKeyDown(KEY_LEFT)) player->position.x -= PLAYER_HOR_SPD*delta;
     if (IsKeyDown(KEY_RIGHT)) player->position.x += PLAYER_HOR_SPD*delta;
     if (IsKeyDown(KEY_SPACE) && player->canJump)
