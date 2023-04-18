@@ -9,5 +9,5 @@ Initially it was a medieval theme game, but over time we created it without foll
 And it resulted in this beautiful game!! 
 
 ### 🧙🏿‍♀️🧙🏿‍♂️ Team
-- **Marina Melo** - *Game Developer and Game Designer* - [marinavelosom](https://github.com/marinavelosom)
 - **Gabriel Soares** - *Game Developer and Game Designer* - [zGabrie1](https://github.com/zGabrie1)
+- **Marina Melo** - *Game Developer and Game Designer* - [marinavelosom](https://github.com/marinavelosom)
