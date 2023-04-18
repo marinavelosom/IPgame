@@ -1,6 +1,6 @@
 # 🕹 Game name 
 - Project for the Introduction to Programming course.
-- Developed in c, using the Raylib library. 
+- Developed in c using the Raylib library. 
 - [Raylib official website](https://www.raylib.com/)
 - [Game design](https://www.figma.com/file/ciJ9Xg0XW6hPVBjg4VvWlr/gameIP?node-id=0%3A1&t=v7Qf8udePFBlxeET-1)
 
