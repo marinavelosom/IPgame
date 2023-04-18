@@ -577,6 +577,9 @@ int main(void)
                     Vector2 batPos = { bat1.position.x, bat1.position.y };
                     DrawTextureRec(TextureBat, frameBat, batPos, WHITE);
                     
+                    Vector2 bat2Pos = { bat1.position.x + 1200, bat1.position.y };
+                    DrawTextureRec(TextureBat, frameBat, bat2Pos, WHITE);
+                    
                     //mushroom
                     Vector2 mushPos = { mush1.position.x, mush1.position.y };
                     DrawTextureRec(TextureMush, frameMush, mushPos, WHITE);
