@@ -447,6 +447,14 @@ int main(void)
                         frameRecAndando.x = (float) frameWidthAndando * frameIndex;
                         frameIndex %= numFramesAndando2;
                         frameRecAndando2.x = (float) frameWidthAndando2 * frameIndex;
+                        
+                        ++frameIndexBat;
+                        frameIndexBat %= numFramesBat;
+                        frameBat.x = (float)frameWidthBat * frameIndexBat;
+                        
+                        ++frameIndexMush;
+                        frameIndexMush %= numFramesMush;
+                        frameMush.x = (float)frameWidthMush * frameIndexMush;
                     } else {
                         ++frameIndex;
                         frameIndex %= numFramesParado;
