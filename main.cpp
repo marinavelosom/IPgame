@@ -505,8 +505,8 @@ int main(void)
                 DrawTexture(title, 200, 20, WHITE);
                 DrawText("Press C for character 1 of V for character 2", 180, 200, 20, BLACK);
                 
-                Vector2 playerPos = { player.position.x - 100, player.position.y - 97 };
-                Vector2 playerPos2 = { player.position.x , player.position.y - 97 };
+                Vector2 playerPos = { player.position.x - 180, player.position.y - 117};
+                Vector2 playerPos2 = { player.position.x - 30, player.position.y - 97 };
                 
                 DrawTextureRec(playerTexture1Parado, frameRecParado, playerPos, WHITE);
                 DrawTextureRec(playerTexture2Parado, frameRecParado2, playerPos2, WHITE);
