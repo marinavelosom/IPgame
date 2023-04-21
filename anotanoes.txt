@@ -1,5 +1,3 @@
-//ajustar posição da camera (subir até ficar com a plataforma na grama)
 //tirar o zoom
-//ajeitar posição do personagem
 //interação do personagem com subidas (rampa)
 //terminar montagem do mapa 1
