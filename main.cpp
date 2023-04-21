@@ -1,28 +1,24 @@
 #include "raylib.h"
 #include "raymath.h"
 
+//#include "include/updatePlayer.h"
+#include "include/structPlayer.h"
+#include "include/structEnvItem.h"
+#include "include/structBat.h"
+#include "include/structMashroom.h"
+
 #define G 400
 #define PLAYER_JUMP_SPD 350.0f
 #define PLAYER_HOR_SPD 200.0f
 #define NUM_FRAMES  2
-
-typedef struct Player {
-    Vector2 position;
-    float speed;
-    bool canJump;
-} Player;
-
-typedef struct EnvItem {
-    Rectangle rect;
-    int blocking;
-    Color color;
-} EnvItem;
+#define PLAYER_WIDTH 30
+#define PLAYER_HEIGHT 60
 
 //----------------------------------------------------------------------------------
 // Module functions declaration
 //----------------------------------------------------------------------------------
 void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float delta);
-void UpdateCameraCenter(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height);
+void UpdateCameraCenterInsideMap(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height);
 bool ButtonsMenu(Vector2 mousePoint, bool btnAction, Rectangle btnBounds, Sound fxButton);
 
 //------------------------------------------------------------------------------------
@@ -34,6 +30,7 @@ int main(void)
     bool Pause = false;
     char escolha;
     bool grounded = true;
+    bool IsAtk = false;
     
     // Initialization
     //--------------------------------------------------------------------------------------
@@ -57,7 +54,7 @@ int main(void)
     const char *andando2 = "assets/Run 2.png";
 	Texture2D playerTexture2Andando = LoadTexture(andando2);
 
-    const char *parado2 = "assets/Idle 12.png";
+    const char *parado2 = "assets/Idle 2.png";
 	Texture2D playerTexture2Parado = LoadTexture(parado2);
 
     const char *fall = "assets/Fall 1.png";
@@ -66,7 +63,12 @@ int main(void)
     const char *fall2 = "assets/Fall 2.png";
 	Texture2D playerTexture2Fall = LoadTexture(fall2);
     
-    
+    const char *attack1 = "assets/Attack1.png";
+	Texture2D playerTexture1Attack = LoadTexture(attack1);
+
+    const char *attack2 = "assets/Attack2.png";
+	Texture2D playerTexture2Attack = LoadTexture(attack2);
+
     //MENU
     //button main menu -------------------------------------------------------------------------------------
     Sound fxControlButton = LoadSound("audio/buttonfx.wav");   // Load button sound
@@ -76,31 +78,31 @@ int main(void)
     Texture2D button = LoadTexture("assets/buttonStartTest.png"); // Load start button texture
     Texture2D controlButton = LoadTexture("assets/buttonControlsTest.png"); // Load controls button texture
     
-    //int btnState = 0;               // Button state: 0-NORMAL, 1-MOUSE_HOVER, 2-PRESSED
-    bool btnAction = false;         // Button action should be activated
+    bool btnAction = false;         
     bool btnActionControl = false;
     
     Vector2 mousePoint = { 0.0f, 0.0f };
     
-    //controls 
+    //-------------- Config. Button Control ------------------------
     Texture2D controls = LoadTexture("assets/controlMenu.png");
     Texture back = LoadTexture("assets/backButton.png");
     
-    // Define frame rectangle for drawing
+    //-------------- Config. Frames ------------------------
     float frameHeight = (float)button.height/NUM_FRAMES;
     Rectangle sourceRec = { 0, 0, (float)button.width, frameHeight };
     Rectangle sourceRecBack = { 0, 0, (float)back.width, (float)back.height };
     
-    //transform texture in rec for mouse collision
+    //-------------- Config. Buttons Rec ------------------------
     Rectangle btnBounds = { screenWidth/2.0f - controlButton.width/2.0f, screenHeight/2.0f - controlButton.height/NUM_FRAMES/2.0f, (float)controlButton.width, frameHeight };
     Rectangle btnControlBounds = { screenWidth/2.0f - controlButton.width/2.0f, ( screenHeight/2.0f - controlButton.height/NUM_FRAMES/2.0f ) + 100, (float)controlButton.width, frameHeight };
     Rectangle btnBackBounds = { 330, 38, (float)back.width, frameHeight  };
     
     
-    // title
+    //-------------- Config. Title -----------------------------------------
+    
     Texture2D title = LoadTexture("assets/title.png");
     
-    //texture background
+    //-------------- Config. background -----------------------------------------
     Texture2D sky = LoadTexture("assets/sky.png");
     Texture2D mountainBack = LoadTexture("assets/mountainsBack.png");
     Texture2D mountainFront = LoadTexture("assets/mountainsFront.png");
@@ -120,22 +122,68 @@ int main(void)
     player.position = (Vector2){ 400, 280 };
     player.speed = 0;
     player.canJump = false;
+    
+    //-------------- Config. Map ------------------------
+    
+    Color transparent = (Color){0, 0, 0, 0};
+    
     EnvItem envItems[] = {
-        {{ -100, 400, 1000, 200 }, 1, GRAY },
-        {{ 300, 200, 400, 10 }, 1, GRAY },
-        {{ 250, 300, 100, 10 }, 1, GRAY },
-        {{ 650, 300, 100, 10 }, 1, GRAY },
-        {{ 100, 90, 100, 10 }, 1, GRAY }
+      //{{ X, Y, W, H }},
+        {{ 0, 600, 300, 30 }, 1, transparent}, //plataform 1
+        {{ 300, 490, 660, 140 }, 1, transparent }, //floor 1
+        {{ 1380, 490, 580, 140 }, 1, transparent }, //floor 2
+        {{ 2600, 490, 580, 140 }, 1, transparent }, //floor 3
+        {{ 1050, 400, 100, 10 }, 1, transparent }, 
+        {{ 1200, 300, 100, 10 }, 1, transparent },
+        {{ 100, 90, 100, 10 }, 1, transparent },
+        {{ 965, 625, 415, 5 }, 1, transparent }, //lake 1
+        {{ 2050, 400, 165, 10 }, 1, transparent },
+        {{ 2300, 400, 165, 10 }, 1, transparent },
+        {{ 3300, 490, 580, 140 }, 1, transparent }, //floor 3
     };
-
+    
     int envItemsLength = sizeof(envItems)/sizeof(envItems[0]);
-
+    
+    //-------------- Textures map ------------------------
+    const char *floor = "assets/floor1.png";
+    Texture2D TextureFloor = LoadTexture(floor);
+    
+    const char *floor2 = "assets/floor2.png";
+    Texture2D TextureFloor2 = LoadTexture(floor2);
+    
+    const char *floor3 = "assets/floor3.png";
+    Texture2D TextureFloor3 = LoadTexture(floor3);
+    
+    const char *lake = "assets/lake1.png";
+    Texture2D TextureLake = LoadTexture(lake);
+    
+    const char *plataform1 = "assets/plataformSky1.png";
+    Texture2D TexturePlataform = LoadTexture(plataform1);
+    
+    const char *plataform2 = "assets/plataformSky2.png";
+    Texture2D TexturePlataform2 = LoadTexture(plataform2);
+    
+    const char *plataformGround = "assets/plataformGround.png";
+    Texture2D TexturePlataformG = LoadTexture(plataformGround);
+    
+    //-------------- Objects ------------------------
+    const char *tree = "assets/tree2.png";
+    Texture2D TextureTree = LoadTexture(tree);
+    
+    const char *plate = "assets/plate1.png";
+    Texture2D TexturePlate = LoadTexture(plate);
+    
+    const char *rock = "assets/rock1.png";
+    Texture2D TextureRock = LoadTexture(rock);
+    
+    //-------------- Camera ------------------------
+    
     Camera2D camera = { 0 };
     camera.target = player.position;
     camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
-
+    
     // ----------------Config dos frames andando -----------------------------------------
 
     unsigned numFramesAndando = 4; //quantidade de sprites na imagem
@@ -148,13 +196,17 @@ int main(void)
 	int frameWidthAndando2 = playerTexture2Andando.width / numFramesAndando2;
 	Rectangle frameRecAndando2 = { 0.2f, 0.2f, (float)frameWidthAndando2, (float)playerTexture2Andando.height };
     
-    unsigned frameDelay = 6;
+    unsigned frameDelay = 7;
 	unsigned frameDelayCounter = 0;
     unsigned frameIndex = 0;
     unsigned frameIndexF = 0;
     unsigned frameIndexF2 = 0;
+    unsigned frameIndexBat = 0;
+    unsigned frameIndexMush = 0;
+    unsigned frameIndexAtk1 = 0;
+    unsigned frameIndexAtk2 = 0;
 
-    // -----------------------config dos frames parado---------------------------------------
+    // -----------------------Config dos frames parado---------------------------------------
 
     unsigned numFramesParado = 8.9; //quantidade de sprites na imagem
 	int frameWidthParado = playerTexture1Parado.width / numFramesParado;
@@ -165,7 +217,7 @@ int main(void)
 	Rectangle frameRecParado2 = { 0.2f, 0.2f, (float)frameWidthParado2, (float)playerTexture2Parado.height };
 
     
-    //---------------------------config dos frames pulando-----------------------------------
+    //--------------------------- Config dos frames pulando-----------------------------------
 
     unsigned numFramesFall = 2; //quantidade de sprites na imagem
 	int frameWidthFall = playerTexture1Fall.width / numFramesFall;
@@ -174,19 +226,60 @@ int main(void)
     unsigned numFramesFall2 = 2; //quantidade de sprites na imagem
 	int frameWidthFall2 = playerTexture2Fall.width / numFramesFall2;
 	Rectangle frameRecFall2 = { 0.2f, 0.2f, (float)frameWidthFall2, (float)playerTexture2Fall.height };
+    
+    //------------------------config dos frames ataque------------------------------------------
 
-     //------------config camera--------------------------------------------------
+    	unsigned numFramesAttack2 = 6; //quantidade de sprites na imagem
+	int frameWidthAttack2 = playerTexture2Attack.width / numFramesAttack2;
+	Rectangle frameRecAttack2 = { 0.2f, 0.2f, (float)frameWidthAttack2, (float)playerTexture2Attack.height };
+
+    	unsigned numFramesAttack1 = 5; //quantidade de sprites na imagem
+	int frameWidthAttack1 = playerTexture1Attack.width / numFramesAttack1;
+	Rectangle frameRecAttack1 = { 0.2f, 0.2f, (float)frameWidthAttack1, (float)playerTexture1Attack.height };
+
+     //--------------------------- Config camera--------------------------------------------------
 
     // Store pointers to the multiple update camera functions
     void (*cameraUpdaters[])(Camera2D*, Player*, EnvItem*, int, float, int, int) = {
-        UpdateCameraCenter,
+        UpdateCameraCenterInsideMap,
     };
 
     int cameraOption = 0;
+    int cameraUpdatersLength = sizeof(cameraUpdaters)/sizeof(cameraUpdaters[0]);
 
     SetTargetFPS(60);
+    
     //--------------------------------------------------------------------------------------
     int auxChoiceCharacter = 0, auxControl = 0, aux = 0;
+    
+    //===================== Confg. bat ======================================================
+    
+    const char *bat = "assets/batSprite.png";
+    Texture2D TextureBat = LoadTexture(bat);
+    
+    unsigned numFramesBat = 4;
+    int frameWidthBat = TextureBat.width / numFramesBat;
+    Rectangle frameBat = { 0.2f, 0.2f, (float)frameWidthBat, (float)TextureBat.height };
+    
+    Bat bat1 = { 0 };
+    bat1.position = (Vector2){ 1700, 380 };
+    
+    //=======================================================================================
+    
+    //===================== Confg. mushroom ======================================================
+    
+    const char *mush = "assets/mushroomIdle.png";
+    Texture2D TextureMush = LoadTexture(mush);
+    
+    unsigned numFramesMush = 4;
+    int frameWidthMush = TextureMush.width / numFramesMush;
+    Rectangle frameMush = { 0.2f, 0.2f, (float)frameWidthMush, (float)TextureMush.height };
+    
+    Mush mush1 = { 0 };
+    mush1.position = (Vector2){ 3400, 195 };
+    
+    //=======================================================================================
+    
     // Main game loop
     while (!WindowShouldClose())
     {   
@@ -221,6 +314,7 @@ int main(void)
         } 
         
         //definitions for background menu ----------------------------------------------------------------------------------
+        
         scrollingSkyMenu -= 0.1f;
         scrollingBackMenu -= 0.5f;
         scrollingFrontMenu -= 1.0f;
@@ -231,21 +325,32 @@ int main(void)
         if(scrollingFrontMenu <= -mountainFront.width * 2) scrollingFrontMenu = 0;
         if(scrollingBushMenu <= -bushes.width * 2) scrollingBushMenu = 0;
         
+        if(scrollingSky <= -sky.width * 2) scrollingSky = 0;
+        if(scrollingBack <= -mountainBack.width * 2) scrollingBack = 0;
+        if(scrollingFront <= -mountainFront.width * 2) scrollingFront = 0;
+        if(scrollingBush <= -bushes.width * 2) scrollingBush = 0;
+        
         //-----------------------------zoom config------------------------------------------------
         
         float deltaTime = GetFrameTime();
 
-        if(Start) UpdatePlayer(&player, envItems, envItemsLength, deltaTime);
+        if(Start) {
+            UpdatePlayer(&player, envItems, envItemsLength, deltaTime);
 
-        camera.zoom += ((float)GetMouseWheelMove()*0.05f);
+            if (IsKeyPressed(KEY_R))
+            {
+                camera.zoom = 1.0f;
+                player.position = (Vector2){ 140, 480 };
+            }
 
-        if (camera.zoom > 3.0f) camera.zoom = 3.0f;
-        else if (camera.zoom < 0.25f) camera.zoom = 0.25f;
+            // Call update camera function by its pointer
+            cameraUpdaters[cameraOption](&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
+        }
 
-        if (IsKeyPressed(KEY_R))
-        {
-            camera.zoom = 1.0f;
-            player.position = (Vector2){ 400, 280 };
+        if(!Start) {
+            if (IsKeyPressed(KEY_C) || IsKeyPressed(KEY_V)) {
+                player.position = (Vector2){ 140, 480 };
+            }
         }
 
         //------atualizacao de frames do character----------------------------------------
@@ -258,7 +363,7 @@ int main(void)
                 ++frameIndex;
                 frameIndex %= numFramesParado;
                 frameRecParado.x = (float) frameWidthParado * frameIndex;
-
+                
                 ++frameIndex;
                 frameIndex %= numFramesParado2;
                 frameRecParado2.x = (float) frameWidthParado2 * frameIndex;
@@ -278,6 +383,24 @@ int main(void)
                 }
             }
 
+            //-----------------atualizacao dos frames do atak independe se esta grounded--------------------
+            if(IsKeyPressed(KEY_K)) IsAtk = true;
+            if(IsAtk == true) {
+                ++frameDelayCounter;
+                if(frameDelayCounter > frameDelay) {
+                    frameDelayCounter = 0;
+                    
+                    ++frameIndexAtk1;
+                    frameIndexAtk1 %= numFramesAttack1;
+                    frameRecAttack1.x = (float) frameWidthAttack1 * frameIndexAtk1;
+
+                    ++frameIndexAtk2;
+                    frameIndexAtk2 %= numFramesAttack2;
+                    frameRecAttack2.x = (float) frameWidthAttack2 * frameIndexAtk2;
+                }
+            }          
+            //------------------------------------------------------------------------------------------------
+            
             if (!hitObstacle) {// Se não hitar o obstaculo
                 player.position.y += player.speed*delta;
                 player.speed += G*delta;
@@ -295,13 +418,25 @@ int main(void)
                     ++frameIndexF2;
                     frameIndexF2 %= numFramesFall2;
                     frameRecFall2.x = (float) frameWidthFall2 * frameIndexF2;
+                    
+                    ++frameIndexBat;
+                    frameIndexBat %= numFramesBat;
+                    frameBat.x = (float)frameWidthBat * frameIndexBat;
+                    
+                    ++frameIndexMush;
+                    frameIndexMush %= numFramesMush;
+                    frameMush.x = (float)frameWidthMush * frameIndexMush;
+                    
                 }
-
-
-
+                
             } else { //Se hitar o obstaculo
                 grounded = true;
-                if (IsKeyDown(KEY_RIGHT)) {
+                if (IsKeyDown(KEY_D)) {
+                    
+                    scrollingSky -= 0.1f;
+                    scrollingBack -= 0.5f;
+                    scrollingFront -= 1.0f;
+                    scrollingBush -= 1.5f;
                     
                     characterVelocity.x = characterSpeed;
                     if(frameRecAndando.width < 0) {
@@ -311,8 +446,16 @@ int main(void)
                         frameRecAndando2.width = -frameRecAndando2.width;
                         frameRecParado2.width = -frameRecParado2.width;
                         frameRecFall2.width = -frameRecFall2.width;
+                        frameRecAttack1.width = -frameRecAttack1.width;
+                        frameRecAttack2.width = -frameRecAttack2.width;
                     }
-                } else if (IsKeyDown(KEY_LEFT)) {
+                } else if (IsKeyDown(KEY_A)) {
+                    
+                    scrollingSky += 0.1f;
+                    scrollingBack += 0.5f;
+                    scrollingFront+= 1.0f;
+                    scrollingBush += 1.5f;
+                    
                     characterVelocity.x = -characterSpeed;
                     if(frameRecAndando.width > 0) {
                         frameRecAndando.width = -frameRecAndando.width;
@@ -321,6 +464,8 @@ int main(void)
                         frameRecAndando2.width = -frameRecAndando2.width;
                         frameRecParado2.width = -frameRecParado2.width;
                         frameRecFall2.width = -frameRecFall2.width;
+                        frameRecAttack1.width = -frameRecAttack1.width;
+                        frameRecAttack2.width = -frameRecAttack2.width;
                     }
                 } else {
                     characterVelocity.x = 0;
@@ -339,6 +484,14 @@ int main(void)
                         frameRecAndando.x = (float) frameWidthAndando * frameIndex;
                         frameIndex %= numFramesAndando2;
                         frameRecAndando2.x = (float) frameWidthAndando2 * frameIndex;
+                        
+                        ++frameIndexBat;
+                        frameIndexBat %= numFramesBat;
+                        frameBat.x = (float)frameWidthBat * frameIndexBat;
+                        
+                        ++frameIndexMush;
+                        frameIndexMush %= numFramesMush;
+                        frameMush.x = (float)frameWidthMush * frameIndexMush;
                     } else {
                         ++frameIndex;
                         frameIndex %= numFramesParado;
@@ -347,13 +500,19 @@ int main(void)
                         ++frameIndex;
                         frameIndex %= numFramesParado2;
                         frameRecParado2.x = (float) frameWidthParado2 * frameIndex;
+                        
+                        ++frameIndexBat;
+                        frameIndexBat %= numFramesBat;
+                        frameBat.x = (float)frameWidthBat * frameIndexBat;
+                        
+                        ++frameIndexMush;
+                        frameIndexMush %= numFramesMush;
+                        frameMush.x = (float)frameWidthMush * frameIndexMush;
                     }
                 }
+                
             }
         }
-
-        // Call update camera function by its pointer
-        cameraUpdaters[cameraOption](&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
         
 
         // Draw
@@ -361,6 +520,7 @@ int main(void)
       
       BeginDrawing();
             //background animated for menu
+            
             DrawTextureEx(sky, (Vector2){ scrollingSkyMenu, 0 }, 0.0f, 2.0f, WHITE);
             DrawTextureEx(sky, (Vector2){ sky.width*2 + scrollingSkyMenu, 0 }, 0.0f, 2.0f, WHITE);
             
@@ -372,8 +532,9 @@ int main(void)
             
             DrawTextureEx(bushes, (Vector2){ scrollingBushMenu, 130 }, 0.0f, 2.0f, WHITE);
             DrawTextureEx(bushes, (Vector2){ bushes.width*2 + scrollingBushMenu, 130 }, 0.0f, 2.0f, WHITE);
-                
+            
             if(!btnAction) {
+                DrawTexture(title, 200, 20, WHITE);
                 DrawTextureRec(button, sourceRec, (Vector2){ btnBounds.x, btnBounds.y }, WHITE);
                 DrawTextureRec(controlButton, sourceRec, (Vector2){ btnControlBounds.x, btnControlBounds.y }, WHITE);
                 
@@ -383,15 +544,17 @@ int main(void)
                 }
             } 
             if(btnAction && aux == 1) {
-                //DrawText("NOME DO JOGO", 250, 50, 40, YELLOW);
                 DrawTexture(title, 200, 20, WHITE);
+                
                 DrawText("Press C for character 1 of V for character 2", 180, 200, 20, BLACK);
                 
-                Vector2 playerPos = { player.position.x - 100, player.position.y - 97 };
-                Vector2 playerPos2 = { player.position.x , player.position.y - 97 };
+                Vector2 playerPos = { player.position.x - 200, player.position.y - 125, };
+                Vector2 playerPos2 = { player.position.x , player.position.y - 108 };
                 
                 DrawTextureRec(playerTexture1Parado, frameRecParado, playerPos, WHITE);
                 DrawTextureRec(playerTexture2Parado, frameRecParado2, playerPos2, WHITE);
+                
+                
                 
                 if(IsKeyPressed(KEY_C)) {
                     escolha = 'c';
@@ -407,47 +570,96 @@ int main(void)
             if(Start && auxChoiceCharacter == 1){
                 // add to guarantee break with previous screen
                 aux++;
-                ClearBackground(LIGHTGRAY);
                 
                 DrawTextureEx(sky, (Vector2){ scrollingSky, 0 }, 0.0f, 2.0f, WHITE);
                 DrawTextureEx(sky, (Vector2){ sky.width*2 + scrollingSky, 0 }, 0.0f, 2.0f, WHITE);
                 
-                DrawTextureEx(mountainBack, (Vector2){ scrollingBack, 20 }, 0.0f, 2.0f, WHITE);
-                DrawTextureEx(mountainBack, (Vector2){ mountainBack.width*2 + scrollingBack, 20}, 0.0f, 2.0f, WHITE);
+                DrawTextureEx(mountainBack, (Vector2){ scrollingBack, 10 }, 0.0f, 2.0f, WHITE);
+                DrawTextureEx(mountainBack, (Vector2){ mountainBack.width*2 + scrollingBack, 10 }, 0.0f, 2.0f, WHITE);
                 
                 DrawTextureEx(mountainFront, (Vector2){ scrollingFront, 130 }, 0.0f, 2.0f, WHITE);
                 DrawTextureEx(mountainFront, (Vector2){ mountainFront.width*2 + scrollingFront, 130 }, 0.0f, 2.0f, WHITE);
                 
                 DrawTextureEx(bushes, (Vector2){ scrollingBush, 130 }, 0.0f, 2.0f, WHITE);
                 DrawTextureEx(bushes, (Vector2){ bushes.width*2 + scrollingBush, 130 }, 0.0f, 2.0f, WHITE);
-
+                
                 BeginMode2D(camera);
-
                     for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
                     
-                    Vector2 playerPos = { player.position.x - 20, player.position.y - 40 };
-
+                    
+                    //objects 
+                    DrawTexture(TextureTree, 550, 330, WHITE);
+                    DrawTexture(TexturePlate, 50, 550, WHITE);
+                    DrawTexture(TextureRock, 750, 470, WHITE);
+                    
+                    //lake
+                    
+                    //ground
+                    DrawTexture(TexturePlataformG, 0, 600, WHITE);
+                    DrawTexture(TextureFloor, 300, 490, WHITE);
+                    DrawTexture(TextureFloor2, 1380, 490, WHITE);
+                    DrawTexture(TextureFloor3, 2600, 490, WHITE);
+                    DrawTexture(TextureFloor3, 3300, 490, WHITE);
+                    
+                    //plataforms
+                    DrawTexture(TexturePlataform, 1050, 400, WHITE);
+                    DrawTexture(TexturePlataform, 1200, 300, WHITE);
+                    DrawTexture(TexturePlataform2, 2050, 400, WHITE);
+                    DrawTexture(TexturePlataform2, 2300, 400, WHITE);
+                    
+                    //bat
+                    Vector2 batPos = { bat1.position.x, bat1.position.y };
+                    DrawTextureRec(TextureBat, frameBat, batPos, WHITE);
+                    
+                    Vector2 bat2Pos = { bat1.position.x + 1200, bat1.position.y };
+                    DrawTextureRec(TextureBat, frameBat, bat2Pos, WHITE);
+                    
+                    //mushroom
+                    Vector2 mushPos = { mush1.position.x, mush1.position.y };
+                    DrawTextureRec(TextureMush, frameMush, mushPos, WHITE);
+                    
+                    Vector2 playerPos1 = { player.position.x - 100, player.position.y - 138 };
+                    Vector2 playerPos2 = { player.position.x - 85, player.position.y - 115 };
+                    
+                    // DrawTriangle(
+                    //     {410, 490},
+                    //     {300, 600},
+                    //     {410, 600},
+                    //     BLUE
+                    // );
+                    
                     if(grounded) {//--------------Show frame if grounded--------------------------------------
-                        if((IsKeyDown(KEY_LEFT) ^ IsKeyDown(KEY_RIGHT)) && escolha == 'c') {
-                            DrawTextureRec(playerTexture1Andando, frameRecAndando, playerPos, WHITE);
-                        } else if(((!IsKeyDown(KEY_LEFT) && !IsKeyDown(KEY_RIGHT)) || (IsKeyDown(KEY_LEFT) && IsKeyDown(KEY_RIGHT))) && escolha == 'c') {
-                            DrawTextureRec(playerTexture1Parado, frameRecParado, playerPos, WHITE);
-                        } else if((IsKeyDown(KEY_LEFT) ^ IsKeyDown(KEY_RIGHT)) && escolha == 'v') {
-                            DrawTextureRec(playerTexture2Andando, frameRecAndando2, playerPos, WHITE);
-                        } else if(((!IsKeyDown(KEY_LEFT) && !IsKeyDown(KEY_RIGHT)) || (IsKeyDown(KEY_LEFT) && IsKeyDown(KEY_RIGHT))) && escolha == 'v'){
-                            DrawTextureRec(playerTexture2Parado, frameRecParado2, playerPos, WHITE);
+                        if(IsKeyDown(KEY_K)) IsAtk = true;
+                        if(IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_W)) IsAtk = false;
+                        if(IsAtk == true && escolha == 'c') {
+                            DrawTextureRec(playerTexture1Attack, frameRecAttack1, playerPos1, WHITE);
+
+                        } else if(IsAtk == true && escolha == 'v') {
+                            DrawTextureRec(playerTexture2Attack, frameRecAttack2, playerPos2, WHITE);
+                            
+                        } else {
+                            if((IsKeyDown(KEY_A) ^ IsKeyDown(KEY_D)) && escolha == 'c') {
+                                DrawTextureRec(playerTexture1Andando, frameRecAndando, playerPos1, WHITE);
+                            } else if(((!IsKeyDown(KEY_A) && !IsKeyDown(KEY_D)) || (IsKeyDown(KEY_A) && IsKeyDown(KEY_D))) && escolha == 'c') {
+                                DrawTextureRec(playerTexture1Parado, frameRecParado, playerPos1, WHITE);
+                            } else if((IsKeyDown(KEY_A) ^ IsKeyDown(KEY_D)) && escolha == 'v') {
+                                DrawTextureRec(playerTexture2Andando, frameRecAndando2, playerPos2, WHITE);
+                            } else if(((!IsKeyDown(KEY_A) && !IsKeyDown(KEY_D)) || (IsKeyDown(KEY_A) && IsKeyDown(KEY_D))) && escolha == 'v'){
+                                DrawTextureRec(playerTexture2Parado, frameRecParado2, playerPos2, WHITE);
+                            }
                         }
                     }
                     
                     if(!grounded) {//--------------show frame if not grounded------------------------
                         if(escolha == 'c') {
-                            DrawTextureRec(playerTexture1Fall, frameRecFall, playerPos, WHITE);
+                            DrawTextureRec(playerTexture1Fall, frameRecFall, playerPos1, WHITE);
                         }
                         if(escolha == 'v') {
-                            DrawTextureRec(playerTexture2Fall, frameRecFall2, playerPos, WHITE);
+                            DrawTextureRec(playerTexture2Fall, frameRecFall2, playerPos1, WHITE);
                         }
                     }
 
+                    DrawTexture(TextureLake, 965, 600, WHITE);
 
                 EndMode2D();
                 
@@ -482,11 +694,12 @@ int main(void)
 
     return 0;
 }
+//================================================================================================================================================================================
+//estou tentando alocar essa função no arquivo em include -> mas ta tendo erro
 
-void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float delta)
-{
-    if (IsKeyDown(KEY_LEFT)) player->position.x -= PLAYER_HOR_SPD*delta;
-    if (IsKeyDown(KEY_RIGHT)) player->position.x += PLAYER_HOR_SPD*delta;
+void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float delta) {
+    if (IsKeyDown(KEY_A)) player->position.x -= PLAYER_HOR_SPD*delta;
+    if (IsKeyDown(KEY_D)) player->position.x += PLAYER_HOR_SPD*delta;
     if (IsKeyDown(KEY_SPACE) && player->canJump)
     {
         player->speed = -PLAYER_JUMP_SPD;
@@ -512,15 +725,35 @@ void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float d
 
     if (!hitObstacle)
     {
-        player->position.y += player->speed*delta;
-        player->speed += G*delta;
+        player->position.y += player-> speed * delta;
+        player->speed += G * delta;
         player->canJump = false;
     }
     else player->canJump = true;
 }
 
-void UpdateCameraCenter(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height)
+void UpdateCameraCenterInsideMap(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height)
 {
-    camera->offset = (Vector2){ width/2.0f, height/2.0f };
     camera->target = player->position;
+    camera->offset = (Vector2){ width/2.0f, height/2.0f };
+    float minX = 1000, minY = 1000, maxX = -1000, maxY = -1000;
+
+    for (int i = 0; i < envItemsLength; i++)
+    {
+        EnvItem *ei = envItems + i;
+        minX = fminf(ei->rect.x, minX);
+        maxX = fmaxf(ei->rect.x + ei->rect.width, maxX);
+        minY = fminf(ei->rect.y, minY);
+        maxY = fmaxf(ei->rect.y + ei->rect.height, maxY);
+    }
+
+    Vector2 max = GetWorldToScreen2D((Vector2){ maxX, maxY }, *camera);
+    Vector2 min = GetWorldToScreen2D((Vector2){ minX, minY }, *camera);
+
+    if (max.x < width) camera->offset.x = width - (max.x - width/2);
+    if (max.y < height) camera->offset.y = height - (max.y - height/2);
+    if (min.x > 0) camera->offset.x = width/2 - min.x;
+    if (min.y > 0) camera->offset.y = height/2 - min.y;
+    camera->offset.y -= (-9);
+
 }
