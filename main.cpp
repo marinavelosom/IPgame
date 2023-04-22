@@ -268,15 +268,15 @@ int main(void)
     
     //===================== Confg. mushroom ======================================================
     
-    const char *mush = "assets/mushroomIdle.png";
+    const char *mush = "assets/mushroomRun.png";
     Texture2D TextureMush = LoadTexture(mush);
     
-    unsigned numFramesMush = 4;
+    unsigned numFramesMush = 8;
     int frameWidthMush = TextureMush.width / numFramesMush;
     Rectangle frameMush = { 0.2f, 0.2f, (float)frameWidthMush, (float)TextureMush.height };
     
     Mush mush1 = { 0 };
-    mush1.position = (Vector2){ 3400, 195 };
+    mush1.position = (Vector2){ 3400, 230 };
     
     //=======================================================================================
     
