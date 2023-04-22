@@ -129,8 +129,7 @@ int main(void)
     
     EnvItem envItems[] = {
       //{{ X, Y, W, H }},
-        {{ 0, 600, 300, 30 }, 1, transparent}, //plataform 1
-        {{ 300, 490, 660, 140 }, 1, transparent }, //floor 1
+        {{ 0, 490, 960, 140 }, 1, transparent }, //floor 1
         {{ 1380, 490, 580, 140 }, 1, transparent }, //floor 2
         {{ 2600, 490, 580, 140 }, 1, transparent }, //floor 3
         {{ 1050, 400, 100, 10 }, 1, transparent }, 
@@ -139,13 +138,14 @@ int main(void)
         {{ 965, 625, 415, 5 }, 1, transparent }, //lake 1
         {{ 2050, 400, 165, 10 }, 1, transparent },
         {{ 2300, 400, 165, 10 }, 1, transparent },
-        {{ 3300, 490, 580, 140 }, 1, transparent }, //floor 3
+        {{ 3300, 490, 580, 140 }, 1, transparent }, //floor 4
+        {{ 3980, 490, 580, 140 }, 1, transparent }, //floor 5
     };
-    
+
     int envItemsLength = sizeof(envItems)/sizeof(envItems[0]);
     
     //-------------- Textures map ------------------------
-    const char *floor = "assets/floor1.png";
+    const char *floor = "assets/floor1Test.png";
     Texture2D TextureFloor = LoadTexture(floor);
     
     const char *floor2 = "assets/floor2.png";
@@ -153,6 +153,9 @@ int main(void)
     
     const char *floor3 = "assets/floor3.png";
     Texture2D TextureFloor3 = LoadTexture(floor3);
+    
+    const char *floor4 = "assets/floor4.png";
+    Texture2D TextureFloor4 = LoadTexture(floor4);
     
     const char *lake = "assets/lake1.png";
     Texture2D TextureLake = LoadTexture(lake);
@@ -169,6 +172,12 @@ int main(void)
     //-------------- Objects ------------------------
     const char *tree = "assets/tree2.png";
     Texture2D TextureTree = LoadTexture(tree);
+    
+    const char *tree1 = "assets/tree3.png";
+    Texture2D TextureTree1 = LoadTexture(tree1);
+    
+    const char *tree2 = "assets/tree4.png";
+    Texture2D TextureTree2 = LoadTexture(tree2);
     
     const char *plate = "assets/plate1.png";
     Texture2D TexturePlate = LoadTexture(plate);
@@ -589,17 +598,21 @@ int main(void)
                     
                     //objects 
                     DrawTexture(TextureTree, 550, 330, WHITE);
+                    DrawTexture(TextureTree1, 1550, 350, WHITE);
+                    DrawTexture(TextureTree2, 2610, 350, WHITE);
+                    DrawTexture(TextureTree2, 3300, 350, WHITE);
+                    
                     DrawTexture(TexturePlate, 50, 550, WHITE);
                     DrawTexture(TextureRock, 750, 470, WHITE);
                     
                     //lake
                     
                     //ground
-                    DrawTexture(TexturePlataformG, 0, 600, WHITE);
-                    DrawTexture(TextureFloor, 300, 490, WHITE);
+                    DrawTexture(TextureFloor, 0, 490, WHITE);
                     DrawTexture(TextureFloor2, 1380, 490, WHITE);
                     DrawTexture(TextureFloor3, 2600, 490, WHITE);
                     DrawTexture(TextureFloor3, 3300, 490, WHITE);
+                    DrawTexture(TextureFloor4, 3980, 490, WHITE);
                     
                     //plataforms
                     DrawTexture(TexturePlataform, 1050, 400, WHITE);
@@ -621,12 +634,6 @@ int main(void)
                     Vector2 playerPos1 = { player.position.x - 100, player.position.y - 138 };
                     Vector2 playerPos2 = { player.position.x - 85, player.position.y - 115 };
                     
-                    // DrawTriangle(
-                    //     {410, 490},
-                    //     {300, 600},
-                    //     {410, 600},
-                    //     BLUE
-                    // );
                     
                     if(grounded) {//--------------Show frame if grounded--------------------------------------
                         if(IsKeyDown(KEY_K)) IsAtk = true;
