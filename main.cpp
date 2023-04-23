@@ -31,7 +31,7 @@ int main(void)
     char escolha;
     bool grounded = true;
     bool IsAtk = false;
-    
+    bool credits = false;
     // Initialization
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
@@ -43,6 +43,7 @@ int main(void)
     InitAudioDevice();
     
     Music music = LoadMusicStream("audio/music.wav"); 
+    Music musicCredits = LoadMusicStream("audio/credits.mp3"); 
     PlayMusicStream(music);
     
     const char *andando1 = "assets/Run 1.png";
@@ -214,7 +215,7 @@ int main(void)
     unsigned frameIndexMush = 0;
     unsigned frameIndexAtk1 = 0;
     unsigned frameIndexAtk2 = 0;
-
+    unsigned frameIndexPortal = 0;
     // -----------------------Config dos frames parado---------------------------------------
 
     unsigned numFramesParado = 8.9; //quantidade de sprites na imagem
@@ -289,7 +290,19 @@ int main(void)
     
     //=======================================================================================
     
-    // Main game loop
+    //===================== Confg. portal ======================================================
+    
+    const char *portal = "assets/PurplePortal.png";
+    Texture2D TexturePortal = LoadTexture(portal);
+    
+    unsigned numFramesPortal = 8;
+    int frameWidthPortal = TexturePortal.width / numFramesPortal;
+    Rectangle framePortal = { 0.2f, 0.2f, (float)frameWidthPortal, (float)TexturePortal.height };
+    
+    Mush portal1 = { 0 };
+    portal1.position = (Vector2){ 4465, 350 };
+    
+    // Main game loop ======================================================================================= 
     while (!WindowShouldClose())
     {   
         // Update 
@@ -436,7 +449,12 @@ int main(void)
                     frameIndexMush %= numFramesMush;
                     frameMush.x = (float)frameWidthMush * frameIndexMush;
                     
+                    ++frameIndexPortal;
+                    frameIndexPortal %= numFramesPortal;
+                    framePortal.x = (float)frameWidthPortal * frameIndexPortal;
                 }
+                
+                if(player.position.x > 4300) credits = true; 
                 
             } else { //Se hitar o obstaculo
                 grounded = true;
@@ -501,6 +519,10 @@ int main(void)
                         ++frameIndexMush;
                         frameIndexMush %= numFramesMush;
                         frameMush.x = (float)frameWidthMush * frameIndexMush;
+                        
+                        ++frameIndexPortal;
+                        frameIndexPortal %= numFramesPortal;
+                        framePortal.x = (float)frameWidthPortal * frameIndexPortal;
                     } else {
                         ++frameIndex;
                         frameIndex %= numFramesParado;
@@ -517,9 +539,12 @@ int main(void)
                         ++frameIndexMush;
                         frameIndexMush %= numFramesMush;
                         frameMush.x = (float)frameWidthMush * frameIndexMush;
+                        
+                        ++frameIndexPortal;
+                        frameIndexPortal %= numFramesPortal;
+                        framePortal.x = (float)frameWidthPortal * frameIndexPortal;
                     }
                 }
-                
             }
         }
         
@@ -634,6 +659,10 @@ int main(void)
                     Vector2 playerPos1 = { player.position.x - 100, player.position.y - 138 };
                     Vector2 playerPos2 = { player.position.x - 85, player.position.y - 115 };
                     
+                    //portal
+                    Vector2 portalPos = { portal1.position.x, portal1.position.y };
+                    DrawTextureRec(TexturePortal, framePortal, portalPos, WHITE);
+                    
                     
                     if(grounded) {//--------------Show frame if grounded--------------------------------------
                         if(IsKeyDown(KEY_K)) IsAtk = true;
@@ -669,18 +698,23 @@ int main(void)
                     DrawTexture(TextureLake, 965, 600, WHITE);
 
                 EndMode2D();
-                
-                if(IsKeyPressed(KEY_Q)) {
-                    Pause = !Pause;
-                }
             }
             
-            if(Pause){
-                //DrawRectangle(0, 0, screenWidth, screenHeight, LIGHTGRAY);
-                ClearBackground(LIGHTGRAY);
-                DrawText("PAUSED", 550, 300, 40, RED);
-                DrawText("PRESS Q FOR BACK TO GAME", 520, 350, 15, GRAY);
+            if(credits == true){
+                StopMusicStream(music);
+                PlayMusicStream(musicCredits);
+                
+                ClearBackground(BLACK);
+                
+                DrawText("CREDITS", 300, 100, 40, YELLOW);
+                DrawText("GABRIEL SOARES", 280, 200, 25, WHITE);
+                DrawText("MARINA MELO", 300, 230, 25, WHITE);
+                DrawText("PEDRO PEREIRA", 290, 260, 25, WHITE);
+                DrawText("JULIO CÉSAR", 305, 290, 25, WHITE);
+                DrawText("[ ESC for exit ]", 600, 420, 15, GRAY);
+                
             }
+            
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
