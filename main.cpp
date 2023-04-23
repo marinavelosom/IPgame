@@ -96,7 +96,7 @@ int main(void)
     //-------------- Config. Buttons Rec ------------------------
     Rectangle btnBounds = { screenWidth/2.0f - controlButton.width/2.0f, screenHeight/2.0f - controlButton.height/NUM_FRAMES/2.0f, (float)controlButton.width, frameHeight };
     Rectangle btnControlBounds = { screenWidth/2.0f - controlButton.width/2.0f, ( screenHeight/2.0f - controlButton.height/NUM_FRAMES/2.0f ) + 100, (float)controlButton.width, frameHeight };
-    Rectangle btnBackBounds = { 330, 38, (float)back.width, frameHeight  };
+    Rectangle btnBackBounds = { 330, 388, (float)back.width, frameHeight  };
     
     
     //-------------- Config. Title -----------------------------------------
@@ -193,6 +193,9 @@ int main(void)
     camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
+    
+    //-------------- Sound effects ------------------------
+    Sound soundFall = LoadSound("audio/fall.mp3"); 
     
     // ----------------Config dos frames andando -----------------------------------------
 
@@ -455,7 +458,7 @@ int main(void)
                 }
                 
                 if(player.position.x > 4300) credits = true; 
-                
+                    
             } else { //Se hitar o obstaculo
                 grounded = true;
                 if (IsKeyDown(KEY_D)) {
@@ -588,8 +591,6 @@ int main(void)
                 DrawTextureRec(playerTexture1Parado, frameRecParado, playerPos, WHITE);
                 DrawTextureRec(playerTexture2Parado, frameRecParado2, playerPos2, WHITE);
                 
-                
-                
                 if(IsKeyPressed(KEY_C)) {
                     escolha = 'c';
                     Start = !Start;
@@ -619,7 +620,6 @@ int main(void)
                 
                 BeginMode2D(camera);
                     for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
-                    
                     
                     //objects 
                     DrawTexture(TextureTree, 550, 330, WHITE);
