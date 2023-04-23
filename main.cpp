@@ -31,7 +31,7 @@ int main(void)
     char escolha;
     bool grounded = true;
     bool IsAtk = false;
-    
+    bool credits = false;
     // Initialization
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
@@ -43,6 +43,7 @@ int main(void)
     InitAudioDevice();
     
     Music music = LoadMusicStream("audio/music.wav"); 
+    Music musicCredits = LoadMusicStream("audio/credits.mp3"); 
     PlayMusicStream(music);
     
     const char *andando1 = "assets/Run 1.png";
@@ -95,7 +96,7 @@ int main(void)
     //-------------- Config. Buttons Rec ------------------------
     Rectangle btnBounds = { screenWidth/2.0f - controlButton.width/2.0f, screenHeight/2.0f - controlButton.height/NUM_FRAMES/2.0f, (float)controlButton.width, frameHeight };
     Rectangle btnControlBounds = { screenWidth/2.0f - controlButton.width/2.0f, ( screenHeight/2.0f - controlButton.height/NUM_FRAMES/2.0f ) + 100, (float)controlButton.width, frameHeight };
-    Rectangle btnBackBounds = { 330, 38, (float)back.width, frameHeight  };
+    Rectangle btnBackBounds = { 330, 388, (float)back.width, frameHeight  };
     
     
     //-------------- Config. Title -----------------------------------------
@@ -129,8 +130,7 @@ int main(void)
     
     EnvItem envItems[] = {
       //{{ X, Y, W, H }},
-        {{ 0, 600, 300, 30 }, 1, transparent}, //plataform 1
-        {{ 300, 490, 660, 140 }, 1, transparent }, //floor 1
+        {{ 0, 490, 960, 140 }, 1, transparent }, //floor 1
         {{ 1380, 490, 580, 140 }, 1, transparent }, //floor 2
         {{ 2600, 490, 580, 140 }, 1, transparent }, //floor 3
         {{ 1050, 400, 100, 10 }, 1, transparent }, 
@@ -139,13 +139,14 @@ int main(void)
         {{ 965, 625, 415, 5 }, 1, transparent }, //lake 1
         {{ 2050, 400, 165, 10 }, 1, transparent },
         {{ 2300, 400, 165, 10 }, 1, transparent },
-        {{ 3300, 490, 580, 140 }, 1, transparent }, //floor 3
+        {{ 3300, 490, 580, 140 }, 1, transparent }, //floor 4
+        {{ 3980, 490, 580, 140 }, 1, transparent }, //floor 5
     };
-    
+
     int envItemsLength = sizeof(envItems)/sizeof(envItems[0]);
     
     //-------------- Textures map ------------------------
-    const char *floor = "assets/floor1.png";
+    const char *floor = "assets/floor1Test.png";
     Texture2D TextureFloor = LoadTexture(floor);
     
     const char *floor2 = "assets/floor2.png";
@@ -153,6 +154,9 @@ int main(void)
     
     const char *floor3 = "assets/floor3.png";
     Texture2D TextureFloor3 = LoadTexture(floor3);
+    
+    const char *floor4 = "assets/floor4.png";
+    Texture2D TextureFloor4 = LoadTexture(floor4);
     
     const char *lake = "assets/lake1.png";
     Texture2D TextureLake = LoadTexture(lake);
@@ -170,6 +174,12 @@ int main(void)
     const char *tree = "assets/tree2.png";
     Texture2D TextureTree = LoadTexture(tree);
     
+    const char *tree1 = "assets/tree3.png";
+    Texture2D TextureTree1 = LoadTexture(tree1);
+    
+    const char *tree2 = "assets/tree4.png";
+    Texture2D TextureTree2 = LoadTexture(tree2);
+    
     const char *plate = "assets/plate1.png";
     Texture2D TexturePlate = LoadTexture(plate);
     
@@ -183,6 +193,9 @@ int main(void)
     camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
+    
+    //-------------- Sound effects ------------------------
+    Sound soundFall = LoadSound("audio/fall.mp3"); 
     
     // ----------------Config dos frames andando -----------------------------------------
 
@@ -205,7 +218,7 @@ int main(void)
     unsigned frameIndexMush = 0;
     unsigned frameIndexAtk1 = 0;
     unsigned frameIndexAtk2 = 0;
-
+    unsigned frameIndexPortal = 0;
     // -----------------------Config dos frames parado---------------------------------------
 
     unsigned numFramesParado = 8.9; //quantidade de sprites na imagem
@@ -268,19 +281,31 @@ int main(void)
     
     //===================== Confg. mushroom ======================================================
     
-    const char *mush = "assets/mushroomIdle.png";
+    const char *mush = "assets/mushroomRun.png";
     Texture2D TextureMush = LoadTexture(mush);
     
-    unsigned numFramesMush = 4;
+    unsigned numFramesMush = 8;
     int frameWidthMush = TextureMush.width / numFramesMush;
     Rectangle frameMush = { 0.2f, 0.2f, (float)frameWidthMush, (float)TextureMush.height };
     
     Mush mush1 = { 0 };
-    mush1.position = (Vector2){ 3400, 195 };
+    mush1.position = (Vector2){ 3400, 230 };
     
     //=======================================================================================
     
-    // Main game loop
+    //===================== Confg. portal ======================================================
+    
+    const char *portal = "assets/PurplePortal.png";
+    Texture2D TexturePortal = LoadTexture(portal);
+    
+    unsigned numFramesPortal = 8;
+    int frameWidthPortal = TexturePortal.width / numFramesPortal;
+    Rectangle framePortal = { 0.2f, 0.2f, (float)frameWidthPortal, (float)TexturePortal.height };
+    
+    Mush portal1 = { 0 };
+    portal1.position = (Vector2){ 4465, 350 };
+    
+    // Main game loop ======================================================================================= 
     while (!WindowShouldClose())
     {   
         // Update 
@@ -427,8 +452,13 @@ int main(void)
                     frameIndexMush %= numFramesMush;
                     frameMush.x = (float)frameWidthMush * frameIndexMush;
                     
+                    ++frameIndexPortal;
+                    frameIndexPortal %= numFramesPortal;
+                    framePortal.x = (float)frameWidthPortal * frameIndexPortal;
                 }
                 
+                if(player.position.x > 4300) credits = true; 
+                    
             } else { //Se hitar o obstaculo
                 grounded = true;
                 if (IsKeyDown(KEY_D)) {
@@ -492,6 +522,10 @@ int main(void)
                         ++frameIndexMush;
                         frameIndexMush %= numFramesMush;
                         frameMush.x = (float)frameWidthMush * frameIndexMush;
+                        
+                        ++frameIndexPortal;
+                        frameIndexPortal %= numFramesPortal;
+                        framePortal.x = (float)frameWidthPortal * frameIndexPortal;
                     } else {
                         ++frameIndex;
                         frameIndex %= numFramesParado;
@@ -508,9 +542,12 @@ int main(void)
                         ++frameIndexMush;
                         frameIndexMush %= numFramesMush;
                         frameMush.x = (float)frameWidthMush * frameIndexMush;
+                        
+                        ++frameIndexPortal;
+                        frameIndexPortal %= numFramesPortal;
+                        framePortal.x = (float)frameWidthPortal * frameIndexPortal;
                     }
                 }
-                
             }
         }
         
@@ -554,8 +591,6 @@ int main(void)
                 DrawTextureRec(playerTexture1Parado, frameRecParado, playerPos, WHITE);
                 DrawTextureRec(playerTexture2Parado, frameRecParado2, playerPos2, WHITE);
                 
-                
-                
                 if(IsKeyPressed(KEY_C)) {
                     escolha = 'c';
                     Start = !Start;
@@ -586,20 +621,23 @@ int main(void)
                 BeginMode2D(camera);
                     for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
                     
-                    
                     //objects 
                     DrawTexture(TextureTree, 550, 330, WHITE);
+                    DrawTexture(TextureTree1, 1550, 350, WHITE);
+                    DrawTexture(TextureTree2, 2610, 350, WHITE);
+                    DrawTexture(TextureTree2, 3300, 350, WHITE);
+                    
                     DrawTexture(TexturePlate, 50, 550, WHITE);
                     DrawTexture(TextureRock, 750, 470, WHITE);
                     
                     //lake
                     
                     //ground
-                    DrawTexture(TexturePlataformG, 0, 600, WHITE);
-                    DrawTexture(TextureFloor, 300, 490, WHITE);
+                    DrawTexture(TextureFloor, 0, 490, WHITE);
                     DrawTexture(TextureFloor2, 1380, 490, WHITE);
                     DrawTexture(TextureFloor3, 2600, 490, WHITE);
                     DrawTexture(TextureFloor3, 3300, 490, WHITE);
+                    DrawTexture(TextureFloor4, 3980, 490, WHITE);
                     
                     //plataforms
                     DrawTexture(TexturePlataform, 1050, 400, WHITE);
@@ -621,12 +659,10 @@ int main(void)
                     Vector2 playerPos1 = { player.position.x - 100, player.position.y - 138 };
                     Vector2 playerPos2 = { player.position.x - 85, player.position.y - 115 };
                     
-                    // DrawTriangle(
-                    //     {410, 490},
-                    //     {300, 600},
-                    //     {410, 600},
-                    //     BLUE
-                    // );
+                    //portal
+                    Vector2 portalPos = { portal1.position.x, portal1.position.y };
+                    DrawTextureRec(TexturePortal, framePortal, portalPos, WHITE);
+                    
                     
                     if(grounded) {//--------------Show frame if grounded--------------------------------------
                         if(IsKeyDown(KEY_K)) IsAtk = true;
@@ -662,18 +698,23 @@ int main(void)
                     DrawTexture(TextureLake, 965, 600, WHITE);
 
                 EndMode2D();
-                
-                if(IsKeyPressed(KEY_Q)) {
-                    Pause = !Pause;
-                }
             }
             
-            if(Pause){
-                //DrawRectangle(0, 0, screenWidth, screenHeight, LIGHTGRAY);
-                ClearBackground(LIGHTGRAY);
-                DrawText("PAUSED", 550, 300, 40, RED);
-                DrawText("PRESS Q FOR BACK TO GAME", 520, 350, 15, GRAY);
+            if(credits == true){
+                StopMusicStream(music);
+                PlayMusicStream(musicCredits);
+                
+                ClearBackground(BLACK);
+                
+                DrawText("CREDITS", 300, 100, 40, YELLOW);
+                DrawText("GABRIEL SOARES", 280, 200, 25, WHITE);
+                DrawText("MARINA MELO", 300, 230, 25, WHITE);
+                DrawText("PEDRO PEREIRA", 290, 260, 25, WHITE);
+                DrawText("JULIO CÉSAR", 305, 290, 25, WHITE);
+                DrawText("[ ESC for exit ]", 600, 420, 15, GRAY);
+                
             }
+            
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
