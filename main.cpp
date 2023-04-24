@@ -333,13 +333,13 @@ int main(void)
     Texture2D TextureBoss = LoadTexture(boss);
     
     unsigned numFramesBoss = 6;
-    int frameWidthBoss = TextureBoss.width / numFramesBoss;
+    int frameWidthBoss = (TextureBoss.width) / numFramesBoss;
     Rectangle frameBoss = { 0.2f, 0.2f, (float)frameWidthBoss, (float)TextureBoss.height };
     
     frameBoss.width = -frameBoss.width; 
 
     Mush boss1 = { 0 };
-    boss1.position = (Vector2){ 4100, 320 };
+    boss1.position = (Vector2){ 400, 320 };
 
     //===================== Confg. arrow ======================================================
     // const char *arrow = "assets/arrow.png";
@@ -1015,10 +1015,8 @@ int main(void)
                     DrawTextureRec(TextureMush, frameMush, mushPos, WHITE);
                     
                     // BOSS =============================================================
-                    Rectangle monster3Rect = { boss1.position.x + 60, boss1.position.y + 30, 150, 150  };
                     Vector2 bossPos = { boss1.position.x, boss1.position.y };
                     DrawTextureRec(TextureBoss, frameBoss, bossPos, WHITE);
-                    DrawRectangleRec(monster3Rect, BLACK);
                     
                     // Portal =============================================================
                     Vector2 portalPos = { portal1.position.x, portal1.position.y };
