@@ -339,7 +339,7 @@ int main(void)
     frameBoss.width = -frameBoss.width; 
 
     Mush boss1 = { 0 };
-    boss1.position = (Vector2){ 400, 320 };
+    boss1.position = (Vector2){ 4100, 320 };
 
     //===================== Confg. arrow ======================================================
     // const char *arrow = "assets/arrow.png";
