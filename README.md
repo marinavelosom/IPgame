@@ -1,4 +1,4 @@
-# 🕹 Game name 
+# 🕹 Twilight Adventure 
 - Project for the Introduction to Programming course.
 - Developed in c using the Raylib library. 
 - [Raylib official website](https://www.raylib.com/)
