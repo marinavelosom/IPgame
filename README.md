@@ -11,5 +11,8 @@ And it resulted in this beautiful game!!
 ### 🧙🏿‍♀️🧙🏿‍♂️ Team
 - **Gabriel Soares** - *Game Developer and Game Designer* - [zGabrie1](https://github.com/zGabrie1)
 - **Marina Melo** - *Game Developer and Game Designer* - [marinavelosom](https://github.com/marinavelosom)
-- **Júlio César** - *Game Developer and Game Designer* - [JulioCesarB2201](https://github.com/JulioCesarB2201)
-- **Pedro Marques** - *Game Developer and Game Designer* - [Pedro Marques](https://github.com/Ryoboy12)
+
+https://user-images.githubusercontent.com/55593325/234284313-42a93fb9-af6b-4192-a452-1749cac450a0.mp4
+
+https://user-images.githubusercontent.com/55593325/234285370-91446da4-bf96-404a-905b-e11edb1b6e03.mp4
+
