@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "raymath.h"
+#include <stdio.h>
 
 //#include "include/updatePlayer.h"
 #include "include/structPlayer.h"
@@ -13,6 +14,7 @@
 #define NUM_FRAMES  2
 #define PLAYER_WIDTH 30
 #define PLAYER_HEIGHT 60
+#define BAT_HOR_SPD 10.0f
 
 //----------------------------------------------------------------------------------
 // Module functions declaration
@@ -28,9 +30,11 @@ int main(void)
 {
     bool Start = false;
     bool Pause = false;
+    bool GameOver = false;
     char escolha;
     bool grounded = true;
     bool IsAtk = false;
+    bool leftAtk = false;
     bool credits = false;
     // Initialization
     //--------------------------------------------------------------------------------------
@@ -43,8 +47,14 @@ int main(void)
     InitAudioDevice();
     
     Music music = LoadMusicStream("audio/music.wav"); 
-    Music musicCredits = LoadMusicStream("audio/credits.mp3"); 
     PlayMusicStream(music);
+    
+    Sound atkSound = LoadSound("audio/attack.wav");
+    Sound fallSound = LoadSound("audio/FallScream.mp3");
+    Sound collsionSound = LoadSound("audio/collision.mp3");
+    Sound gameOverSound = LoadSound("audio/GameOver.wav");
+    Sound lakeFallSound = LoadSound("audio/lakesplash.mp3");
+    Sound soundCredits = LoadSound("audio/credits.mp3"); 
     
     const char *andando1 = "assets/Run 1.png";
 	Texture2D playerTexture1Andando = LoadTexture(andando1);
@@ -118,6 +128,7 @@ int main(void)
     float scrollingBackMenu = 0.0f;
     float scrollingFrontMenu = 0.0f;
     float scrollingBushMenu = 0.0f;
+    //----------------------personagem------------------------
     
     Player player = { 0 };
     player.position = (Vector2){ 400, 280 };
@@ -130,13 +141,16 @@ int main(void)
     
     EnvItem envItems[] = {
       //{{ X, Y, W, H }},
+        {{ 0, 350, 5, 300 }, 1, transparent}, //90 graus
+        {{ 960, 490, 5, 150 }, 1, transparent}, //90 graus lake 1
+        {{ 1380, 500, 30, 150 }, 1, transparent}, //90 graus lake 2
         {{ 0, 490, 960, 140 }, 1, transparent }, //floor 1
         {{ 1380, 490, 580, 140 }, 1, transparent }, //floor 2
         {{ 2600, 490, 580, 140 }, 1, transparent }, //floor 3
         {{ 1050, 400, 100, 10 }, 1, transparent }, 
         {{ 1200, 300, 100, 10 }, 1, transparent },
         {{ 100, 90, 100, 10 }, 1, transparent },
-        {{ 965, 625, 415, 5 }, 1, transparent }, //lake 1
+        {{ 965, 640, 415, 5 }, 1, transparent }, //lake 1
         {{ 2050, 400, 165, 10 }, 1, transparent },
         {{ 2300, 400, 165, 10 }, 1, transparent },
         {{ 3300, 490, 580, 140 }, 1, transparent }, //floor 4
@@ -185,6 +199,9 @@ int main(void)
     
     const char *rock = "assets/rock1.png";
     Texture2D TextureRock = LoadTexture(rock);
+    // ------------ Life ------------------------
+    const char *heart = "assets/heart.png";
+    Texture2D TexturePlayerheart = LoadTexture(heart);
     
     //-------------- Camera ------------------------
     
@@ -211,17 +228,21 @@ int main(void)
     
     unsigned frameDelay = 7;
 	unsigned frameDelayCounter = 0;
+    unsigned frameDelayCounter2 = 0;
     unsigned frameIndex = 0;
     unsigned frameIndexF = 0;
     unsigned frameIndexF2 = 0;
     unsigned frameIndexBat = 0;
+    unsigned frameIndexBat2 = 0;
     unsigned frameIndexMush = 0;
     unsigned frameIndexAtk1 = 0;
     unsigned frameIndexAtk2 = 0;
     unsigned frameIndexPortal = 0;
+    unsigned frameIndexBoss = 0;
+    
     // -----------------------Config dos frames parado---------------------------------------
 
-    unsigned numFramesParado = 8.9; //quantidade de sprites na imagem
+    unsigned numFramesParado = 8; //quantidade de sprites na imagem
 	int frameWidthParado = playerTexture1Parado.width / numFramesParado;
 	Rectangle frameRecParado = { 0.2f, 0.2f, (float)frameWidthParado, (float)playerTexture1Parado.height };
 
@@ -262,7 +283,6 @@ int main(void)
 
     SetTargetFPS(60);
     
-    //--------------------------------------------------------------------------------------
     int auxChoiceCharacter = 0, auxControl = 0, aux = 0;
     
     //===================== Confg. bat ======================================================
@@ -273,11 +293,13 @@ int main(void)
     unsigned numFramesBat = 4;
     int frameWidthBat = TextureBat.width / numFramesBat;
     Rectangle frameBat = { 0.2f, 0.2f, (float)frameWidthBat, (float)TextureBat.height };
-    
+    Rectangle frameBat2 = { 0.2f, 0.2f, (float)frameWidthBat, (float)TextureBat.height };
+
+
     Bat bat1 = { 0 };
-    bat1.position = (Vector2){ 1700, 380 };
-    
-    //=======================================================================================
+    Bat bat2 = { 0 };
+    bat1.position = (Vector2){ 1700, 400 };
+    bat2.position = (Vector2){ 2900, 400 };
     
     //===================== Confg. mushroom ======================================================
     
@@ -288,10 +310,10 @@ int main(void)
     int frameWidthMush = TextureMush.width / numFramesMush;
     Rectangle frameMush = { 0.2f, 0.2f, (float)frameWidthMush, (float)TextureMush.height };
     
+    frameMush.width = -frameMush.width; 
+
     Mush mush1 = { 0 };
     mush1.position = (Vector2){ 3400, 230 };
-    
-    //=======================================================================================
     
     //===================== Confg. portal ======================================================
     
@@ -305,6 +327,32 @@ int main(void)
     Mush portal1 = { 0 };
     portal1.position = (Vector2){ 4465, 350 };
     
+    //===================== Confg. BOSS ======================================================
+    
+    const char *boss = "assets/NightBorneRun.png";
+    Texture2D TextureBoss = LoadTexture(boss);
+    
+    unsigned numFramesBoss = 6;
+    int frameWidthBoss = (TextureBoss.width) / numFramesBoss;
+    Rectangle frameBoss = { 0.2f, 0.2f, (float)frameWidthBoss, (float)TextureBoss.height };
+    
+    frameBoss.width = -frameBoss.width; 
+
+    Mush boss1 = { 0 };
+    boss1.position = (Vector2){ 4100, 320 };
+
+    //===================== Confg. arrow ======================================================
+    // const char *arrow = "assets/arrow.png";
+    // Texture TextureArrow = LoadTexture(arrow);
+
+    // unsigned numFramesArrow = ;
+    // ------------------------------
+    int life = 0;
+    int hitBat1 = 0, hitBat2 = 0, hitMush = 0, hitBoss = 0;
+    bool BhitMush = false;
+    bool BhitBoss = false;
+    int cont1Dist = 0,  cont2Dist = 0, cont3Dist = 0, cont4Dist = 0;
+    int  arrowAtk = 0, contArrow = 0;
     // Main game loop ======================================================================================= 
     while (!WindowShouldClose())
     {   
@@ -358,9 +406,231 @@ int main(void)
         //-----------------------------zoom config------------------------------------------------
         
         float deltaTime = GetFrameTime();
+        
+        bool collisionWallLeft = false; 
+        bool collisionWallRight = false; 
+        bool invertPosition = false;
+
+        float arrowPositionX = player.position.x + 50;
+        float arrowPositionY = player.position.y - 70;
 
         if(Start) {
+            //------------------------------------config hitWall--------------------------------------------------------
+            Rectangle rec1 = { 0, 350, 5, 900 }; // wall begin
+            Rectangle rec2 = { 970, 490, 5, 150 }; //wall 1 lake
+            Rectangle rec3 = { 1380, 500, 30, 150 };//wall 2 lake
+            Rectangle rec4 = {4560, 350, 5, 900};
+            Rectangle playerRect = { player.position.x - 10, player.position.y - 60, 40, 60 }; // player
+            Rectangle monsterRect = { bat1.position.x + 15, bat1.position.y + 15, 40, 30  }; // Bat 1
+            Rectangle monster1Rect = { bat2.position.x + 15, bat2.position.y + 15, 40, 30  }; // Bat 2
+            Rectangle monster2Rect = { mush1.position.x + 170, mush1.position.y + 170, 100, 150  }; // Mushroom
+            Rectangle monster3Rect = { boss1.position.x + 60, boss1.position.y + 30, 150, 150  }; // BOSS
+            
             UpdatePlayer(&player, envItems, envItemsLength, deltaTime);
+
+            // ================= Bat 2 walk =================================================
+            
+            if(cont1Dist < 200) {
+                bat1.position.x -= 1.0f;
+                cont1Dist++;
+                if(cont1Dist == 200) {
+                    cont1Dist = cont1Dist * 2;
+                    frameBat.width = -frameBat.width;
+                }
+            }
+            
+            if(cont1Dist > 200) {
+                bat1.position.x += 1.0f;
+                cont1Dist--;
+                if(cont1Dist == 200) {
+                    cont1Dist = 0;
+                    frameBat.width = -frameBat.width;
+                }
+            }
+
+            // ================= Bat 2 walk =================================================
+            
+            if(cont2Dist < 200) {
+                bat2.position.x -= 1.0f;
+                cont2Dist++;
+                if(cont2Dist == 200) {
+                    cont2Dist = cont2Dist * 2;
+                    frameBat2.width = -frameBat2.width;
+                }
+            }
+            
+            if(cont2Dist > 200) {
+                bat2.position.x += 1.0f;
+                cont2Dist--;
+                if(cont2Dist == 200) {
+                    cont2Dist = 0;
+                    frameBat2.width = -frameBat2.width;
+                }
+            }
+            
+            // ================= Mushroom Walk =================================================  
+
+            if(cont3Dist < 200) {
+                mush1.position.x -= 1.0f;
+                cont3Dist++;
+                if(cont3Dist == 200) {
+                    cont3Dist = cont3Dist * 2;
+                    TextureMush.width = -TextureMush.width;
+                }
+            }
+            
+            if(cont3Dist > 200) {
+                mush1.position.x += 1.0f;
+                cont3Dist--;
+                if(cont3Dist == 200) {
+                    cont3Dist = 0;
+                    TextureMush.width = -TextureMush.width;
+                }
+            }        
+
+            // ================================ BOSS Walk ========================================
+
+
+            if(cont4Dist < 200) {
+                boss1.position.x -= 1.0f;
+                cont4Dist++;
+                if(cont4Dist == 200) {
+                    cont4Dist = cont4Dist * 2;
+                    TextureBoss.width = -TextureBoss.width;
+                }
+            }
+            
+            if(cont4Dist > 200) {
+                boss1.position.x += 1.0f;
+                cont4Dist--;
+                if(cont4Dist == 200) {
+                    cont4Dist = 0;
+                    TextureBoss.width = -TextureBoss.width;
+                }
+
+            } 
+
+            // ================= Attack ====================================================          
+            
+            if(IsKeyPressed(KEY_K)) {
+                PlaySound(atkSound);
+                IsAtk = true;
+            } 
+
+            if(IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_SPACE)) IsAtk = false;
+            if(IsKeyDown(KEY_A)) leftAtk = true;
+            if(IsKeyDown(KEY_D)) leftAtk = false;
+            
+            if(IsAtk == true && !leftAtk) { //Right
+                Rectangle recAttack = { player.position.x + 50, player.position.y - 70, 20, 30};
+
+                if (CheckCollisionRecs(recAttack, monsterRect)) bat1.position.y = 4000;
+                if (CheckCollisionRecs(recAttack, monster1Rect)) bat2.position.y = 4000;
+                
+                if(CheckCollisionRecs(recAttack, monster2Rect)) {
+                    hitMush++;
+                }
+                if (hitMush > 50) mush1.position.y = 4000;
+
+                if(CheckCollisionRecs(recAttack, monster3Rect)) {
+                    hitBoss++;
+                } 
+                if (hitBoss > 100) boss1.position.y = 4000;
+
+            } else if(IsAtk == true && leftAtk) {
+                Rectangle recAttack = { player.position.x - 60, player.position.y - 70, 20, 30};
+
+                if (CheckCollisionRecs(recAttack, monsterRect)) bat1.position.y = 4000;
+                if (CheckCollisionRecs(recAttack, monster1Rect)) bat2.position.y = 4000;
+                
+                if(CheckCollisionRecs(recAttack, monster2Rect)) {
+                    hitMush++;
+                }
+                if (hitMush > 50) mush1.position.y = 4000;
+
+                if(CheckCollisionRecs(recAttack, monster3Rect)) {
+                    hitBoss++;
+                } 
+                if (hitBoss > 100) boss1.position.y = 4000;
+            }
+            
+            // ================= Arrow attack ============================================= (PENDENTE!!!!!!!!!!!!!!!!!!!!!!!!!)
+            
+            if(IsAtk == true && escolha == 'v') {
+                arrowAtk++;
+            }
+
+            if(arrowAtk != 0){
+                Rectangle recArrow = { arrowPositionX, arrowPositionY, 20, 30};
+                arrowPositionX += 1.0f;
+                contArrow++;
+                if(contArrow == 120) {
+                    contArrow = 0;
+                    arrowAtk = 0;
+                } 
+            }
+
+            // ================= Collision monsters =============================================
+            
+            if (CheckCollisionRecs(playerRect, monsterRect) && !IsKeyDown(KEY_K) 
+                || CheckCollisionRecs(playerRect, monster1Rect)
+                || CheckCollisionRecs(playerRect, monster2Rect)
+                || CheckCollisionRecs(playerRect, monster3Rect)
+            ) {// Left collision wall begin and monsters collison
+                PlaySound(collsionSound);
+                life++;
+                camera.zoom = 1.0f;
+                player.position = (Vector2){ 140, 480 };
+            }
+
+            // ================= Collisions Wall and Lake =============================================
+
+            if (CheckCollisionRecs(playerRect, rec1)) {// Left collision wall begin
+                collisionWallLeft = true;
+                if (player.position.x + playerRect.width > rec1.x && player.position.x < rec1.x) {
+                    player.position.x = rec1.x - rec1.width;// Right collision wall begin
+                    collisionWallRight = true;
+                } else if (player.position.x < rec1.x + rec1.width && player.position.x + playerRect.width > rec1.x + rec1.width) {
+                    player.position.x = rec1.x + rec1.width;
+                    collisionWallRight = true;
+                }
+            }
+
+            if (CheckCollisionRecs(playerRect, rec2)) {// Left collision wall 1 lake
+                collisionWallLeft = true;
+
+                if (player.position.x + playerRect.width > rec2.x && player.position.x < rec2.x) {
+                    player.position.x = rec2.x - rec2.width;// Right collision wall 1 lake
+                    collisionWallRight = true;
+                } else if (player.position.x < rec2.x + rec2.width && player.position.x + playerRect.width > rec2.x + rec2.width) {
+                    player.position.x = rec2.x + rec2.width;
+                    collisionWallRight = true;
+                }
+            }
+
+            if (CheckCollisionRecs(playerRect, rec3)) {// Left collision wall 2 lake
+                collisionWallLeft = true;
+                if (player.position.x + playerRect.width > rec3.x && player.position.x < rec3.x) {
+                    player.position.x = rec3.x - rec3.width;// Right collision wall 2 leke
+                    collisionWallRight = true;
+                } else if (player.position.x < rec3.x + rec3.width && player.position.x + playerRect.width > rec3.x + rec3.width) {
+                    player.position.x = rec3.x + rec3.width;
+                    collisionWallRight = true;
+                }
+            }
+
+            if (CheckCollisionRecs(playerRect, rec4)) {// Left collision wall begin
+                collisionWallLeft = true;
+                if (player.position.x + playerRect.width > rec4.x && player.position.x < rec4.x) {
+                    player.position.x = rec4.x - rec4.width;// Right collision wall begin
+                    collisionWallRight = true;
+                } else if (player.position.x < rec4.x + rec4.width && player.position.x + playerRect.width > rec4.x + rec4.width) {
+                    player.position.x = rec4.x + rec4.width;
+                    collisionWallRight = true;
+                }
+            }
+            
+            // ================= Return ===================================================
 
             if (IsKeyPressed(KEY_R))
             {
@@ -368,10 +638,50 @@ int main(void)
                 player.position = (Vector2){ 140, 480 };
             }
 
+            // ================= Camera =====================================================
             // Call update camera function by its pointer
+            
             cameraUpdaters[cameraOption](&camera, &player, envItems, envItemsLength, deltaTime, screenWidth, screenHeight);
-        }
+            
+            // ================= Credits config. =============================================
+            
+            if(player.position.x > 4500) {
+                StopMusicStream(music);
+                PlaySound(soundCredits);
+                credits = true; 
+            }
 
+            // ================= Fall config. =================================================
+            
+            if(player.position.x >= 965 && player.position.x <= 1380 && player.position.y > 635) {
+                PlaySound(lakeFallSound);
+                camera.zoom = 1.0f;
+                player.position = (Vector2){ 140, 480 };
+                life++;
+            }
+
+            if(player.position.y > 750) {
+                PlaySound(fallSound);
+            }
+            
+            if(player.position.y > 1050) {
+                camera.zoom = 1.0f;
+                player.position = (Vector2){ 140, 480 };
+                life++;
+            }
+            
+            // ================= Game Over config. =================================================
+            
+            if(life == 3) {
+                StopMusicStream(music);
+                StopSound(lakeFallSound);
+                PlaySound(gameOverSound);
+                life++;
+            }
+        }
+        
+        // ================= Menu player position =================================================
+        
         if(!Start) {
             if (IsKeyPressed(KEY_C) || IsKeyPressed(KEY_V)) {
                 player.position = (Vector2){ 140, 480 };
@@ -394,7 +704,6 @@ int main(void)
                 frameRecParado2.x = (float) frameWidthParado2 * frameIndex;
             }
         } else {//Dentro do jogo
-            
             //Verificando se hitou o obstaculo
             float delta;
             int hitObstacle = 0;
@@ -409,7 +718,7 @@ int main(void)
             }
 
             //-----------------atualizacao dos frames do atak independe se esta grounded--------------------
-            if(IsKeyPressed(KEY_K)) IsAtk = true;
+            
             if(IsAtk == true) {
                 ++frameDelayCounter;
                 if(frameDelayCounter > frameDelay) {
@@ -422,8 +731,29 @@ int main(void)
                     ++frameIndexAtk2;
                     frameIndexAtk2 %= numFramesAttack2;
                     frameRecAttack2.x = (float) frameWidthAttack2 * frameIndexAtk2;
+
+                    ++frameIndexBat;
+                    frameIndexBat %= numFramesBat;
+                    frameBat.x = (float)frameWidthBat * frameIndexBat;
+
+                    ++frameIndexBat2;
+                    frameIndexBat2 %= numFramesBat;
+                    frameBat2.x = (float)frameWidthBat * frameIndexBat2;
+                    
+                    ++frameIndexMush;
+                    frameIndexMush %= numFramesMush;
+                    frameMush.x = (float)frameWidthMush * frameIndexMush;
+                    
+                    ++frameIndexPortal;
+                    frameIndexPortal %= numFramesPortal;
+                    framePortal.x = (float)frameWidthPortal * frameIndexPortal;
+
+                    ++frameIndexBoss;
+                    frameIndexBoss %= numFramesBoss;
+                    frameBoss.x = (float)frameWidthBoss * frameIndexBoss;
                 }
-            }          
+            }
+            
             //------------------------------------------------------------------------------------------------
             
             if (!hitObstacle) {// Se não hitar o obstaculo
@@ -447,6 +777,10 @@ int main(void)
                     ++frameIndexBat;
                     frameIndexBat %= numFramesBat;
                     frameBat.x = (float)frameWidthBat * frameIndexBat;
+
+                    ++frameIndexBat2;
+                    frameIndexBat2 %= numFramesBat;
+                    frameBat2.x = (float)frameWidthBat * frameIndexBat2;
                     
                     ++frameIndexMush;
                     frameIndexMush %= numFramesMush;
@@ -455,18 +789,27 @@ int main(void)
                     ++frameIndexPortal;
                     frameIndexPortal %= numFramesPortal;
                     framePortal.x = (float)frameWidthPortal * frameIndexPortal;
+
+                    ++frameIndexBoss;
+                    frameIndexBoss %= numFramesBoss;
+                    frameBoss.x = (float)frameWidthBoss * frameIndexBoss;
                 }
                 
-                if(player.position.x > 4300) credits = true; 
-                    
             } else { //Se hitar o obstaculo
                 grounded = true;
                 if (IsKeyDown(KEY_D)) {
                     
-                    scrollingSky -= 0.1f;
-                    scrollingBack -= 0.5f;
-                    scrollingFront -= 1.0f;
-                    scrollingBush -= 1.5f;
+                    if(collisionWallRight == true){
+                        scrollingSky -= 0.0f;
+                        scrollingBack -= 0.0f;
+                        scrollingFront -= 0.0f;
+                        scrollingBush -= 0.0f;
+                    } else {
+                        scrollingSky -= 0.1f;
+                        scrollingBack -= 0.5f;
+                        scrollingFront -= 1.0f;
+                        scrollingBush -= 1.5f;
+                    }
                     
                     characterVelocity.x = characterSpeed;
                     if(frameRecAndando.width < 0) {
@@ -481,10 +824,17 @@ int main(void)
                     }
                 } else if (IsKeyDown(KEY_A)) {
                     
-                    scrollingSky += 0.1f;
-                    scrollingBack += 0.5f;
-                    scrollingFront+= 1.0f;
-                    scrollingBush += 1.5f;
+                    if(collisionWallLeft == true){
+                        scrollingSky += 0.0f;
+                        scrollingBack += 0.0f;
+                        scrollingFront += 0.0f;
+                        scrollingBush += 0.0f;
+                    } else {
+                        scrollingSky += 0.1f;
+                        scrollingBack += 0.5f;
+                        scrollingFront+= 1.0f;
+                        scrollingBush += 1.5f;
+                    }
                     
                     characterVelocity.x = -characterSpeed;
                     if(frameRecAndando.width > 0) {
@@ -519,6 +869,10 @@ int main(void)
                         frameIndexBat %= numFramesBat;
                         frameBat.x = (float)frameWidthBat * frameIndexBat;
                         
+                        ++frameIndexBat2;
+                        frameIndexBat2 %= numFramesBat;
+                        frameBat2.x = (float)frameWidthBat * frameIndexBat2;
+                    
                         ++frameIndexMush;
                         frameIndexMush %= numFramesMush;
                         frameMush.x = (float)frameWidthMush * frameIndexMush;
@@ -526,6 +880,10 @@ int main(void)
                         ++frameIndexPortal;
                         frameIndexPortal %= numFramesPortal;
                         framePortal.x = (float)frameWidthPortal * frameIndexPortal;
+                        
+                        ++frameIndexBoss;
+                        frameIndexBoss %= numFramesBoss;
+                        frameBoss.x = (float)frameWidthBoss * frameIndexBoss;
                     } else {
                         ++frameIndex;
                         frameIndex %= numFramesParado;
@@ -539,6 +897,10 @@ int main(void)
                         frameIndexBat %= numFramesBat;
                         frameBat.x = (float)frameWidthBat * frameIndexBat;
                         
+                        ++frameIndexBat2;
+                        frameIndexBat2 %= numFramesBat;
+                        frameBat2.x = (float)frameWidthBat * frameIndexBat2;
+
                         ++frameIndexMush;
                         frameIndexMush %= numFramesMush;
                         frameMush.x = (float)frameWidthMush * frameIndexMush;
@@ -546,6 +908,10 @@ int main(void)
                         ++frameIndexPortal;
                         frameIndexPortal %= numFramesPortal;
                         framePortal.x = (float)frameWidthPortal * frameIndexPortal;
+
+                        ++frameIndexBoss;
+                        frameIndexBoss %= numFramesBoss;
+                        frameBoss.x = (float)frameWidthBoss * frameIndexBoss;
                     }
                 }
             }
@@ -554,8 +920,8 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-      
-      BeginDrawing();
+    
+    BeginDrawing();
             //background animated for menu
             
             DrawTextureEx(sky, (Vector2){ scrollingSkyMenu, 0 }, 0.0f, 2.0f, WHITE);
@@ -585,7 +951,7 @@ int main(void)
                 
                 DrawText("Press C for character 1 of V for character 2", 180, 200, 20, BLACK);
                 
-                Vector2 playerPos = { player.position.x - 200, player.position.y - 125, };
+                Vector2 playerPos = { player.position.x - 200, player.position.y - 125 };
                 Vector2 playerPos2 = { player.position.x , player.position.y - 108 };
                 
                 DrawTextureRec(playerTexture1Parado, frameRecParado, playerPos, WHITE);
@@ -621,7 +987,7 @@ int main(void)
                 BeginMode2D(camera);
                     for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
                     
-                    //objects 
+                    // Objects 
                     DrawTexture(TextureTree, 550, 330, WHITE);
                     DrawTexture(TextureTree1, 1550, 350, WHITE);
                     DrawTexture(TextureTree2, 2610, 350, WHITE);
@@ -630,49 +996,60 @@ int main(void)
                     DrawTexture(TexturePlate, 50, 550, WHITE);
                     DrawTexture(TextureRock, 750, 470, WHITE);
                     
-                    //lake
-                    
-                    //ground
-                    DrawTexture(TextureFloor, 0, 490, WHITE);
-                    DrawTexture(TextureFloor2, 1380, 490, WHITE);
-                    DrawTexture(TextureFloor3, 2600, 490, WHITE);
-                    DrawTexture(TextureFloor3, 3300, 490, WHITE);
-                    DrawTexture(TextureFloor4, 3980, 490, WHITE);
-                    
-                    //plataforms
+                    //Plataforms
                     DrawTexture(TexturePlataform, 1050, 400, WHITE);
                     DrawTexture(TexturePlataform, 1200, 300, WHITE);
                     DrawTexture(TexturePlataform2, 2050, 400, WHITE);
                     DrawTexture(TexturePlataform2, 2300, 400, WHITE);
                     
-                    //bat
+                    // Bat=============================================================
                     Vector2 batPos = { bat1.position.x, bat1.position.y };
                     DrawTextureRec(TextureBat, frameBat, batPos, WHITE);
                     
-                    Vector2 bat2Pos = { bat1.position.x + 1200, bat1.position.y };
-                    DrawTextureRec(TextureBat, frameBat, bat2Pos, WHITE);
-                    
-                    //mushroom
+                    // Bat2 =============================================================
+                    Vector2 bat2Pos = { bat2.position.x, bat2.position.y };
+                    DrawTextureRec(TextureBat, frameBat2, bat2Pos, WHITE);
+
+                    // Mushroom =============================================================
                     Vector2 mushPos = { mush1.position.x, mush1.position.y };
                     DrawTextureRec(TextureMush, frameMush, mushPos, WHITE);
                     
-                    Vector2 playerPos1 = { player.position.x - 100, player.position.y - 138 };
-                    Vector2 playerPos2 = { player.position.x - 85, player.position.y - 115 };
+                    // BOSS =============================================================
+                    Vector2 bossPos = { boss1.position.x, boss1.position.y };
+                    DrawTextureRec(TextureBoss, frameBoss, bossPos, WHITE);
                     
-                    //portal
+                    // Portal =============================================================
                     Vector2 portalPos = { portal1.position.x, portal1.position.y };
                     DrawTextureRec(TexturePortal, framePortal, portalPos, WHITE);
                     
-                    
+                    Vector2 playerPos1 = { player.position.x - 100, player.position.y - 138 };
+                    Vector2 playerPos2 = { player.position.x - 85, player.position.y - 115 };
+
                     if(grounded) {//--------------Show frame if grounded--------------------------------------
-                        if(IsKeyDown(KEY_K)) IsAtk = true;
-                        if(IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_W)) IsAtk = false;
+                    
+                        // Rec Arrow Attack Draw =============================================================
+
+                        // if(arrowAtk != 0) {
+                        //     Rectangle recArrow = { arrowPositionX, arrowPositionY, 20, 30};
+                        //     DrawRectangleRec(recArrow, BLACK);
+                        // } 
+
+                        // Rec Attack Draw ===================================================================
+                        // if(IsAtk == true && escolha == 'c' && !leftAtk) {
+                        //     Rectangle recAttack = { player.position.x + 50, player.position.y - 70, 20, 30};
+                        //     DrawRectangleRec(recAttack, RED);  
+                        // }
+
+                        // if(IsAtk == true && escolha == 'c'&& leftAtk) {
+                        //     Rectangle recAttack = { player.position.x - 60, player.position.y - 70, 20, 30};
+                        //     DrawRectangleRec(recAttack, BLUE);  
+                        // }
+
                         if(IsAtk == true && escolha == 'c') {
                             DrawTextureRec(playerTexture1Attack, frameRecAttack1, playerPos1, WHITE);
 
                         } else if(IsAtk == true && escolha == 'v') {
                             DrawTextureRec(playerTexture2Attack, frameRecAttack2, playerPos2, WHITE);
-                            
                         } else {
                             if((IsKeyDown(KEY_A) ^ IsKeyDown(KEY_D)) && escolha == 'c') {
                                 DrawTextureRec(playerTexture1Andando, frameRecAndando, playerPos1, WHITE);
@@ -695,15 +1072,38 @@ int main(void)
                         }
                     }
 
+                    // Draw Lake
                     DrawTexture(TextureLake, 965, 600, WHITE);
-
+                    
+                    // Draw Floor
+                    DrawTexture(TextureFloor, 0, 490, WHITE);
+                    DrawTexture(TextureFloor2, 1380, 490, WHITE);
+                    DrawTexture(TextureFloor3, 2600, 490, WHITE);
+                    DrawTexture(TextureFloor3, 3300, 490, WHITE);
+                    DrawTexture(TextureFloor4, 3980, 490, WHITE);
+    
                 EndMode2D();
-            }
-            
-            if(credits == true){
-                StopMusicStream(music);
-                PlayMusicStream(musicCredits);
                 
+                if(life == 0){
+                    DrawTexture(TexturePlayerheart, 20, 20, WHITE);
+                    DrawTexture(TexturePlayerheart, 60, 20, WHITE);
+                    DrawTexture(TexturePlayerheart, 100, 20, WHITE);
+                }else if (life == 1){
+                    DrawTexture(TexturePlayerheart, 20, 20, WHITE);
+                    DrawTexture(TexturePlayerheart, 60, 20, WHITE);
+                    DrawTexture(TexturePlayerheart, 100, 20, transparent);
+                } else if(life == 2) {
+                    DrawTexture(TexturePlayerheart, 20, 20, WHITE);
+                    DrawTexture(TexturePlayerheart, 60, 20, transparent);
+                    DrawTexture(TexturePlayerheart, 100, 20, transparent);
+                } else {
+                    ClearBackground(BLACK);
+                    DrawText("GAME OVER", 300, 100, 40, YELLOW);
+                    DrawText("[ ESC for exit ]", 600, 420, 15, GRAY);
+                }
+            }
+
+            if(credits == true){
                 ClearBackground(BLACK);
                 
                 DrawText("CREDITS", 300, 100, 40, YELLOW);
@@ -795,6 +1195,6 @@ void UpdateCameraCenterInsideMap(Camera2D *camera, Player *player, EnvItem *envI
     if (max.y < height) camera->offset.y = height - (max.y - height/2);
     if (min.x > 0) camera->offset.x = width/2 - min.x;
     if (min.y > 0) camera->offset.y = height/2 - min.y;
-    camera->offset.y -= (-9);
+    camera->offset.y -= (-22);
 
 }
